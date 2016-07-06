@@ -1,0 +1,48 @@
+/**
+
+@module Collections
+*/
+
+
+// BROWSER RELATED
+// Contains the accounts
+Tabs = new Mongo.Collection('tabs', {connection: null});
+pers = new PersistentMinimongo2(Tabs, 'Mist');
+
+if(typeof syncMinimongo !== 'undefined')
+    syncMinimongo(Tabs);
+
+
+// Contains the address book
+AddressBook = new Mongo.Collection('address-book', {connection: null});
+new PersistentMinimongo2(AddressBook, 'Mist');
+
+
+// Contains the accounts
+DoogleLastVisitedPages = new Mongo.Collection('doogle-last-visted-pages', {connection: null});
+new PersistentMinimongo2(DoogleLastVisitedPages, 'Mist');
+
+DoogleHistory = new Mongo.Collection('doogle-history', {connection: null});
+new PersistentMinimongo2(DoogleHistory, 'Mist');
+
+
+
+// ELEMENTREM RELATED
+
+// Accounts collection is add by the elementrem:accounts package
+
+// LastBlock collection is add by the elementrem:accounts package
+
+// contains blockchain meta data
+// LastBlock = new Mongo.Collection('lastblock', {connection: null});
+// new PersistentMinimongo2(LastBlock, 'Mist');
+// if(!LastBlock.findOne('latest'))
+//     LastBlock.insert({
+//         _id: 'latest',
+//         blockNumber: 0,
+//         blockHash: 0,
+//         gasPrice: 0,
+//         checkpoint: 0
+//     });
+
+// Blockchain = new Mongo.Collection('blockchain', {connection: null});

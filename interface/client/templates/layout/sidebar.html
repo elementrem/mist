@@ -1,0 +1,41 @@
+<template name="layout_sidebar">
+    <aside class="sidebar {{fullTabs}}">
+        <nav>
+            <ul>
+                {{#each tabs}}
+                    <li class="{{#if $eq _id 'browser'}}browser{{/if}} {{isSelected}}" data-tab-id="{{_id}}">
+
+                        <button class="main {{#if badge}}has-badge{{/if}}">
+                            {{#if icon}}
+                                {{> elemens_img src=icon}}
+                            {{/if}}
+                            <span>{{name}}</span>
+                            {{#if badge}}
+                                <div class="badge">{{badge}}</div>
+                            {{/if}}
+                        </button>
+
+                        {{#if subMenu}}
+                            <button title="{{#if menuVisible}}Show less{{else}}Show more{{/if}}" class="slide-out arrow-{{#if menuVisible}}up{{else}}down{{/if}}"></button>
+                        {{/if}}
+
+                        <ul class="sub-menu">
+                            {{#each subMenu}}
+                                <li>
+                                    <button class="{{#if selected}}selected{{/if}}">
+                                        {{name}} 
+                                    </button>
+                                    {{#if badge}}
+                                        <div class="badge">{{badge}}</div>
+                                    {{/if}}
+                                </li>
+                            {{/each}}
+                            <li class="see-all"><button> See All</button></li>
+                        </ul>
+                    </li>
+                {{/each}}
+            </ul>
+            {{> elemens_nodeInfo}}
+        </nav>
+    </aside>
+</template>

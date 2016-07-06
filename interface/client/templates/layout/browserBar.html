@@ -1,0 +1,54 @@
+<template name="layout_browserBar">
+    {{#with dapp}}
+    <div class="browser-bar {{#if TemplateVar.getFrom currentWebView 'loading'}}loading{{/if}} {{#if appBar}}url-bar-{{appBar}}{{/if}}">
+        <button title="go back" class="back icon icon-arrow-left"></button>
+        <button title="refresh page" class="reload icon icon-refresh"></button>
+
+            <div class="app-bar {{TemplateVar.get "browserBarTab"}}">
+                <button class="dapp-info {{#if icon}}has-icon{{/if}}">
+                    {{#if icon}}
+                        {{> elemens_img src=icon class="app-icon" }}
+                    {{/if}}
+                    {{name}}
+                </button>
+
+                <form class="url" action="about:blank" target="dapp-form-helper-iframe" autocomplete="on">
+                    <input class="url-input" type="text" value="{{url}}">
+                    <div class="url-breadcrumb" >{{breadcrumb}}</div>
+                </form>
+
+                <button class="accounts">
+                    {{#each dappAccounts}}
+                        <span class="simptip-position-left simptip-movable" data-tooltip="{{name}}">
+                            {{> dapp_identicon identity=address class="dapp-tiny"}}
+                        </span>
+                    {{else}}
+                        {{i18n "mist.browserBar.buttons.noAccounts"}}
+                    {{/each}}
+                    <i class="icon-key"></i>
+                </button>
+                
+                <!-- sections -->
+
+                <div class="dapp-info">
+                    {{> layout_browserBar_dappInfo}}
+                </div>
+
+                <div class="url">
+                    {{> layout_browserBar_network}}
+                </div>
+
+                <div class="accounts">
+                    {{> layout_browserBar_accounts}}
+                </div>
+            </div>
+        
+        {{#if isBrowser}}
+            <button title="Add as app" class="add-tab icon icon-plus"></button>
+        {{else}}
+            <button title="Remove app" class="remove-tab icon icon-close"></button>
+        {{/if}}
+
+    </div>
+    {{/with}}    
+</template>
