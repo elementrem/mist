@@ -122,18 +122,6 @@ var menuTempl = function(webviews) {
                 }
             },
             {
-                label: i18n.t('mist.applicationMenu.accounts.importPresale'),
-                accelerator: 'CommandOrControl+I',
-                enabled: elementremNode.isMainNetwork,            
-                click: function(){
-                    Windows.createPopup('importAccount', {
-                        electronOptions: {
-                            width: 600, height: 370, alwaysOnTop: true
-                        }
-                    });
-                }
-            }, 
-            {
                 type: 'separator'
             },
             {
@@ -327,15 +315,6 @@ var menuTempl = function(webviews) {
                     restartNode('gele');
                 }
               },
-              {
-                label: 'Ele 1.2.9 (C++) [experimental!]',
-                checked: elementremNode.isOwnNode && elementremNode.isEle,
-                enabled: elementremNode.isOwnNode,
-                type: 'checkbox',
-                click: function(){
-                    restartNode('ele');
-                }
-              }
         ]});
     }
 
@@ -353,16 +332,6 @@ var menuTempl = function(webviews) {
                 restartNode(elementremNode.type, 'main');
             }
           },
-          {
-            label: 'Testnet (Morden)',
-            accelerator: 'CommandOrControl+Shift+2',                
-            checked: elementremNode.isOwnNode && elementremNode.isTestNetwork,
-            enabled: elementremNode.isOwnNode && !elementremNode.isTestNetwork,
-            type: 'checkbox',
-            click: function(){
-                restartNode(elementremNode.type, 'test');
-            }
-          }
     ]});
 
     devToolsMenu.push({
