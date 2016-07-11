@@ -41,11 +41,11 @@ var applicationName = 'Mist';
 var electronVersion = '1.2.5';
 var geleVersion = '1.4.8';
 var nodeUrls = {
-    'darwin-x64': 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.7/mac-osx-gele-1.4.7-64a5a36.zip',
-    'linux-x64': 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.7/linux-64bit-gele-1.4.7-64a5a36.zip',
-    'win32-x64': 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.7/Windows-64bit-gele-1.4.7-64a5a36.zip',
-    'linux-ia32': 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.7/linux-32bit-gele-1.4.7-64a5a36.zip',
-    'win32-ia32': 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.7/Windows-32bit-gele-1.4.7-64a5a36.zip'
+    'darwin-x64': 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.8/mac-osx-gele-1.4.8-d73d63b.zip',
+    'linux-x64': 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.8/linux-64bit-gele-1.4.8-d73d63b.zip',
+    'win32-x64': 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.8/Windows-64bit-gele-1.4.8-d73d63b.zip',
+//    'linux-ia32': '',
+//    'win32-ia32': ''
 };
 
 var osVersions = [];
@@ -58,12 +58,12 @@ console.log('Mist version:', version);
 console.log('Electron version:', electronVersion);
 
 if(_.contains(options.platform, 'win32')) {
-    osVersions.push('win32-ia32');
+//    osVersions.push('win32-ia32'); //Elementrem does not support 32bit.
     osVersions.push('win32-x64');
 }
 
 if(_.contains(options.platform, 'linux')) {
-    osVersions.push('linux-ia32');
+//    osVersions.push('linux-ia32'); //Elementrem does not support 32bit.
     osVersions.push('linux-x64');
 }
 
@@ -75,9 +75,9 @@ if(_.contains(options.platform, 'all')) {
     osVersions = [
         'darwin-x64',
         // 'linux-arm',
-        'linux-ia32',
+//        'linux-ia32', //Elementrem does not support 32bit.
         'linux-x64',
-        'win32-ia32',
+//        'win32-ia32', //Elementrem does not support 32bit.
         'win32-x64'
     ];
 }
