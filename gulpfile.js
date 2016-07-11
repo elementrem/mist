@@ -39,7 +39,7 @@ var filenameLowercase = 'mist';
 var filenameUppercase = 'Mist';
 var applicationName = 'Mist'; 
 var electronVersion = '1.2.5';
-var geleVersion = '1.4.7';
+var geleVersion = '1.4.8';
 var nodeUrls = {
     'darwin-x64': 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.7/mac-osx-gele-1.4.7-64a5a36.zip',
     'linux-x64': 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.7/linux-64bit-gele-1.4.7-64a5a36.zip',
