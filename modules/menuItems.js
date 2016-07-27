@@ -264,13 +264,8 @@ var menuTempl = function(webviews) {
     devToolsMenu = [{
             label: i18n.t('mist.applicationMenu.develop.devTools'),
             submenu: devtToolsSubMenu
-        },{
-            label: i18n.t('mist.applicationMenu.develop.runTests'),
-            enabled: (global.mode === 'mist'),
-            click: function(){
-                Windows.getByType('main').send('runTests', 'webview');
-            }
-        },{
+        },
+		{
             label: i18n.t('mist.applicationMenu.develop.logFiles'),
             click: function(){
                 var log = '';
@@ -292,88 +287,6 @@ var menuTempl = function(webviews) {
             }
         }
     ];
-
-
-
-                   
-
-    // add node switching menu
-    devToolsMenu.push({
-        type: 'separator'
-    });
-    // add node switch
-    if(process.platform === 'darwin' || process.platform === 'win32') {
-        devToolsMenu.push({
-            label: i18n.t('mist.applicationMenu.develop.elementremNode'),
-            submenu: [
-              {
-                label: 'Gele 1.4.7 (Go)',
-                checked: elementremNode.isOwnNode && elementremNode.isGele,
-                enabled: elementremNode.isOwnNode,
-                type: 'checkbox',
-                click: function(){
-                    restartNode('gele');
-                }
-              },
-        ]});
-    }
-
-    // add network switch
-    devToolsMenu.push({
-        label: i18n.t('mist.applicationMenu.develop.network'),
-        submenu: [
-          {
-            label: i18n.t('mist.applicationMenu.develop.mainNetwork'),
-            accelerator: 'CommandOrControl+Shift+1',
-            checked: elementremNode.isOwnNode && elementremNode.isMainNetwork,
-            enabled: elementremNode.isOwnNode && !elementremNode.isMainNetwork,
-            type: 'checkbox',
-            click: function(){
-                restartNode(elementremNode.type, 'main');
-            }
-          },
-    ]});
-
-    devToolsMenu.push({
-        label: (global.mining) ? i18n.t('mist.applicationMenu.develop.stopMining') : i18n.t('mist.applicationMenu.develop.startMining'),
-        accelerator: 'CommandOrControl+Shift+M',
-        enabled: elementremNode.isOwnNode && elementremNode.isTestNetwork,
-        click: function(){
-            if(!global.mining) {
-                elementremNode.send('miner_start', [1])
-                    .then((ret) => {
-                        log.info('miner_start', ret.result);
-
-                        if (ret.result) {
-                            global.mining = true;
-                            createMenu(webviews);
-                        }                        
-                    })
-                    .catch((err) => {
-                        log.error('miner_start', err);
-                    });
-            } else {
-                elementremNode.send('miner_stop', [1])
-                    .then((ret) => {
-                        log.info('miner_stop', ret.result);
-
-                        if (ret.result) {
-                            global.mining = false;
-                            createMenu(webviews);
-                        }                        
-                    })
-                    .catch((err) => {
-                        log.error('miner_stop', err);
-                    });
-            }
-        }
-    });
-
-
-    menu.push({
-        label: ((global.mining) ? '⛏ ' : '') + i18n.t('mist.applicationMenu.develop.label'),
-        submenu: devToolsMenu
-    })
 
     // WINDOW
     menu.push({
@@ -400,20 +313,6 @@ var menuTempl = function(webviews) {
             },
         ]
     })
-
-    // HELP
-    if(process.platform === 'darwin') {
-        menu.push({
-            label: i18n.t('mist.applicationMenu.help.label'),
-            role: 'help',
-            submenu: [{
-                label: 'Report a bug on Github',
-                click: function(){
-                    shell.openExternal('https://github.com/elementrem/mist/issues');
-                }
-            }]
-        });
-    }
 
     return menu;
 };
