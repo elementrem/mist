@@ -133,7 +133,7 @@ for (let optIdx in argv._) {
 
 // some options are shared
 if (argv.ipcpath) {
-    argv.nodeOptions.push('--ipcpcath', argv.ipcpath);
+    argv.nodeOptions.push('--ipcpath', argv.ipcpath);
 }
 
 
