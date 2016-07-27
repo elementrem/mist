@@ -39,11 +39,11 @@ var filenameLowercase = 'mist';
 var filenameUppercase = 'Mist';
 var applicationName = 'Mist'; 
 var electronVersion = '1.2.5';
-var geleVersion = '1.4.8';
+var geleVersion = '1.4.9';
 var nodeUrls = {
-    'darwin-x64': 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.8/mac-osx-gele-1.4.8-d73d63b.zip',
-    'linux-x64': 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.8/linux-64bit-gele-1.4.8-d73d63b.zip',
-    'win32-x64': 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.8/Windows-64bit-gele-1.4.8-d73d63b.zip',
+    'darwin-x64': 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.9/mac-osx-gele-1.4.9-ff8d265.zip',
+    'linux-x64': 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.9/linux-64bit-gele-1.4.9-ff8d265.zip',
+    'win32-x64': 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.9/Windows-64bit-gele-1.4.9-ff8d265.zip.zip',
 //    'linux-ia32': '',
 //    'win32-ia32': ''
 };
