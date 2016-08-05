@@ -35,7 +35,9 @@ Ubuntu, for instance
 Ubuntu, for instance    
 `sudo add-apt-repository ppa:wine/wine-builds`    
 `brew install wine`   
-`sudo apt-get update`   
+`sudo apt-get update` 
+`sudo apt-get upgrade`
+`sudo apt-get install --install-recommends winehq-devel`
 If your system is 64 bit, enable 32 bit architecture `sudo dpkg --add-architecture i386`
 
 **build**   
