@@ -1,11 +1,13 @@
 ### To build from source	
 **Prerequisite**    
+`sudo apt-get install build-essential git m4 ruby texinfo libbz2-dev libcurl4-openssl-dev libexpat-dev libncurses-dev zlib1g-dev gcc-multilib g++-multilib`   
+
 * [Curl](https://curl.haxx.se/)   
 Ubuntu, for instance `apt-get install curl`   
 * [Node.js](https://nodejs.org/)    
 Ubuntu, for instance    
 `curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -`  
-`apt-get install -y nodejs`
+`apt-get install -y nodejs`   
 `npm install npm -g`      
 `apt install node-gyp`
 * [Meteor](https://www.meteor.com/)   
@@ -32,6 +34,7 @@ Ubuntu, for instance
 * [Wine](https://www.winehq.org/)   
 Ubuntu, for instance    
 `sudo add-apt-repository ppa:wine/wine-builds`    
+`brew install wine`   
 `sudo apt-get update`   
 If your system is 64 bit, enable 32 bit architecture `sudo dpkg --add-architecture i386`
 
