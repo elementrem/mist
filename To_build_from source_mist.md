@@ -1,4 +1,8 @@
 ### To build from source	
+
+***As a general rule, Do not lose your password and keystore file. In any case, recovery is impossible.***
+***And it doesn't collect any personally identifiable information.***
+
 **Prerequisite**    
 `sudo apt-get install build-essential git m4 ruby texinfo libbz2-dev libcurl4-openssl-dev libexpat-dev libncurses-dev zlib1g-dev gcc-multilib g++-multilib`   
 
