@@ -31,19 +31,15 @@ mistInit = function(){
             url: 'https://elementrem.org',
             position: 0
         });
-        
-        // wait for accounts and blocks to be initialized below
-        Meteor.setTimeout(function() {
-            Tabs.insert({
-                _id: 'wallet',
-                url: 'https://wallet.elementrem.org',
-                position: 1,
-                permissions: {
-                    accounts: web3.ele.accounts
-                }
-            });
-        }, 1500);
     }
+    
+    Tabs.upsert({_id: 'wallet'}, {
+        url: 'https://elementrem.org',
+        position: 1,
+        permissions: {
+            admin: true
+        }
+    });
 
     EleAccounts.init();
     EleBlocks.init();
