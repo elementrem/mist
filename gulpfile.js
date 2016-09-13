@@ -523,7 +523,7 @@ gulp.task('taskQueue', [
     'create-binaries',
     'change-files',
     //'cleanup-files',
-    'rename-folders',
+    'rename-folders'
     // 'zip'
 ]);
 
