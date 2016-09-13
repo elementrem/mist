@@ -123,9 +123,13 @@ const argv = require('yargs')
 
 argv.nodeOptions = [];
 
-for (let optIdx in argv._) {
-    if ('-' === argv._[optIdx].charAt(0)) {
-        argv.nodeOptions = argv._.slice(optIdx);
+
+
+
+for (let optIdx in argv) {
+    if (0 === optIdx.indexOf('node-')) {
+        argv.nodeOptions.push('--' + optIdx.substr(5));
+        argv.nodeOptions.push(argv[optIdx]);
 
         break;
     }
@@ -168,7 +172,11 @@ class Settings {
     return defaultConfig.production;
   }
 
-  get gelePath () {
+  get inTestMode () {
+    return !!process.env.TEST_MODE;
+  }
+ 
+ get gelePath () {
     return argv.gelepath;
   }
 

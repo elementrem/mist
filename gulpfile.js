@@ -1,3 +1,5 @@
+"use strict";
+
 var _ = require("underscore");
 var gulp = require('gulp');
 var exec = require('child_process').exec;
@@ -8,8 +10,9 @@ var spawn = require('child_process').spawn;
 var merge = require('merge-stream');
 var rename = require("gulp-rename");
 var download = require('gulp-download-stream');
-var decompress = require('gulp-decompress');
 var tap = require("gulp-tap");
+const shell = require('shelljs');
+const mocha = require('gulp-spawn-mocha');
 // const zip = require('gulp-zip');
 // var zip = require('gulp-zip');
 // var zip = require('gulp-jszip');
@@ -81,7 +84,6 @@ if(_.contains(options.platform, 'all')) {
         'win32-x64'
     ];
 }
-console.log('Bundling platforms: ', osVersions);
 
 
 // Helpers
@@ -133,86 +135,115 @@ gulp.task('clean:nodes', function (cb) {
   ], cb);
 });
 
-gulp.task('downloadNodes', ['clean:nodes'], function(done) {
-    var streams = [];
 
-    _.each(nodeUrls, function(nodeUrl, os){
+gulp.task('downloadNodes', ['clean:nodes'], function() {
+    let toDownload = [];
 
-        //var destPath = (os === 'darwin-x64')
-          //  ? path +'/'+ filenameUppercase +'.app/Contents/Frameworks/node'
-            //: path +'/resources/node';
-
+    _.each(nodeUrls, function(url, osArch) {
+        let ext = (0 <= osArch.indexOf('linux') ? '.tar.bz2' : '.zip');
 
         // donwload nodes
-        streams.push(download(nodeUrl)
-            .pipe(gulp.dest('./nodes/gele/')));
-
+        if (osArch.indexOf(options.platform) !== -1 || options.platform == 'all') {
+            toDownload.push({
+                file: `gele-${geleVersion}_${osArch}_${ext}`,
+                url: url,
+            });
+        }
     });
 
-    return merge.apply(null, streams);
+    return download(toDownload)
+        .pipe(gulp.dest('./nodes/gele/'));
 });
+
+
 
 gulp.task('unzipNodes', ['downloadNodes'], function(done) {
+    let nodeZips = fs.readdirSync('./nodes/gele');
+
     var streams = [];
 
-    _.each(nodeUrls, function(nodeUrl, os){
+    for (let zipFileName of nodeZips) {
+        let match = zipFileName.match(/_(\w+\-\w+)_/);
+        if (!match) {
+            continue;
+        }
 
-        var fileName = nodeUrl.substr(nodeUrl.lastIndexOf('/'));
+        let osArch = match[1];
 
-        // unzip nodes
-        streams.push(gulp.src('./nodes/gele'+ fileName)
-            .pipe(decompress({strip: 1}))
-            .pipe(gulp.dest('./nodes/gele/'+ os)));
+        let ret;
 
-    });
+        shell.mkdir('-p', `./nodes/gele/${osArch}`);
 
-    return merge.apply(null, streams);
+        if (0 <= osArch.indexOf('linux')) {            
+            ret = shell.exec(`tar -xf ./nodes/gele/${zipFileName} -C ./nodes/gele/${osArch}`);
+
+        } else {
+            ret = shell.exec(`unzip -o ./nodes/gele/${zipFileName} -d ./nodes/gele/${osArch}`);
+        }
+
+        if (0 !== ret.code) {
+            console.error('Error unzipping ' + zipFileName);
+            console.log(ret.stdout);
+            console.error(ret.stderr);
+            return done(ret.stderr);
+        }
+    }
+
+    done();
 });
+
+
 
 gulp.task('renameNodes', ['unzipNodes'], function(done) {
     var streams = [];
 
-    _.each(nodeUrls, function(nodeUrl, os){
-
-        var fileName = nodeUrl.substr(nodeUrl.lastIndexOf('/')).replace('download_file?file_path=','').replace('.tar.bz2','').replace('.zip','');
-
-        // unzip nodes
-        if(os === 'linux-ia32' || os === 'win32-ia32') {
-            console.log(fileName);
-            var task = gulp.src('./nodes/gele/'+ os + fileName);
-
-            if(os === 'linux-ia32')
-                task.pipe(rename('gele/'+ os + '/gele'));
-            if(os === 'win32-ia32')
-                task.pipe(rename('gele/'+ os + '/gele.exe'));
-
-            task.pipe(gulp.dest('./nodes/'));
-
-            streams.push(task);
+    for (let osArch in nodeUrls) {
+        let file;
+        try {
+            file = fs.readdirSync('./nodes/gele/' + osArch).pop();
+        } catch (err) {
+            console.warn(`Skipping ${osArch} node: ${err.message}`);
+            continue;
         }
 
-    });
+        const finalName = (0 <= osArch.indexOf('win32') ? 'gele.exe' : 'gele');
 
-    return merge.apply(null, streams);
+        const originalPath = `./nodes/gele/${osArch}/${file}`,
+            finalPath = `./nodes/gele/${osArch}/${finalName}`;
+
+        let ret = shell.mv(originalPath, finalPath);
+
+        if (0 !== ret.code) {
+            console.error(`Error renaming ${originalPath}`);
+
+            return done(ret.stderr);
+        }
+
+        ret = shell.exec(`chmod +x ${finalPath}`);
+
+        if (0 !== ret.code) {
+            console.error(`Error setting executable permission: ${finalPath}`);
+
+            return done(ret.stderr);
+        }
+    }
+
+    return done();
 });
 
-gulp.task('renameNodesDeleteOld', ['renameNodes'], function (cb) {
-  return del([
-    './nodes/gele/linux-ia32/'+ nodeUrls['linux-ia32'].substr(nodeUrls['linux-ia32'].lastIndexOf('/')).replace('download_file?file_path=','').replace('.tar.bz2','').replace('.zip',''),
-    './nodes/gele/win32-ia32/'+ nodeUrls['win32-ia32'].substr(nodeUrls['linux-ia32'].lastIndexOf('/')).replace('download_file?file_path=','').replace('.tar.bz2','').replace('.zip',''),
-  ], cb);
-});
+
+
 
 // CHECK FOR NODES
 
-var updatedNeeded = true;
-gulp.task('checkNodes', function() {
-    return gulp.src('./nodes/gele/*.{zip,tar.bz2}')
-    .pipe(tap(function(file, t) {
-        if(!!~file.path.indexOf('-'+ geleVersion +'-')) {
-            updatedNeeded = false;
-        }
-    }))
+
+var nodeUpdateNeeded = false;
+gulp.task('checkNodes', function(cb) {
+    return gulp.src('./nodes/gele/*.{zip,tar.bz2}', { read: false })
+        .pipe(tap(function(file, t) {
+            nodeUpdateNeeded = 
+                nodeUpdateNeeded || (0 > file.path.indexOf(geleVersion));
+        }))
     .pipe(gulp.dest('./nodes/gele/'));
 });
 
@@ -222,7 +253,7 @@ gulp.task('checkNodes', function() {
 gulp.task('copy-files', ['checkNodes', 'clean:dist'], function() {
 
     // check if nodes are there
-    if(updatedNeeded){
+    if(nodeUpdateNeeded){
         console.error('YOUR NODES NEED TO BE UPDATED run $ gulp update-nodes');
         throw new Error('YOUR NODES NEED TO BE UPDATED run $ gulp update-nodes');
     }
@@ -299,6 +330,8 @@ gulp.task('copy-i18n', ['copy-files', 'bundling-interface'], function() {
 });
 
 gulp.task('create-binaries', ['copy-i18n'], function(cb) {
+    console.log('Bundling platforms: ', osVersions);
+
     packager({
         dir: './dist_'+ type +'/app/',
         out: './dist_'+ type +'/',
@@ -505,7 +538,7 @@ gulp.task('taskQueue', [
 
 // DOWNLOAD nodes
 gulp.task('update-nodes', [
-    'renameNodesDeleteOld'
+    'renameNodes'
 ]);
 gulp.task('download-nodes', ['update-nodes']);
 
@@ -531,6 +564,20 @@ gulp.task('wallet-checksums', [
     'getChecksums'
 ]);
 
-gulp.task('default', ['mist']);
 
+
+gulp.task('test-wallet', function() {
+    return gulp.src([
+        './test/wallet/*.test.js'
+    ])
+    .pipe(mocha({
+        timeout: 60000,
+        ui: 'exports',
+        reporter: 'spec'
+    }));
+});
+
+
+
+gulp.task('default', ['mist']);
 
