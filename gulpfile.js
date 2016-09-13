@@ -46,9 +46,7 @@ var geleVersion = '1.4.10';
 var nodeUrls = {
     'darwin-x64': 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.10/mac-osx-gele-1.4.10-c32798f.zip',
     'linux-x64': 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.10/linux-64bit-gele-1.4.10-c32798f.zip',
-    'win32-x64': 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.10/Windows-64bit-gele-1.4.10-c32798f.zip',
-//    'linux-ia32': '',
-//    'win32-ia32': ''
+    'win32-x64': 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.10/Windows-64bit-gele-1.4.10-c32798f.zip'
 };
 
 var osVersions = [];
@@ -61,12 +59,10 @@ console.log('Mist version:', version);
 console.log('Electron version:', electronVersion);
 
 if(_.contains(options.platform, 'win32')) {
-//    osVersions.push('win32-ia32'); //Elementrem does not support 32bit.
     osVersions.push('win32-x64');
 }
 
 if(_.contains(options.platform, 'linux')) {
-//    osVersions.push('linux-ia32'); //Elementrem does not support 32bit.
     osVersions.push('linux-x64');
 }
 
@@ -77,10 +73,7 @@ if(_.contains(options.platform, 'darwin')) {
 if(_.contains(options.platform, 'all')) {
     osVersions = [
         'darwin-x64',
-        // 'linux-arm',
-//        'linux-ia32', //Elementrem does not support 32bit.
         'linux-x64',
-//        'win32-ia32', //Elementrem does not support 32bit.
         'win32-x64'
     ];
 }
@@ -90,13 +83,13 @@ if(_.contains(options.platform, 'all')) {
 var createNewFileName = function(os) {
     var newOs;
     if(os.indexOf('win32') !== -1) {
-        newOs = os.replace('win32-ia32','win32').replace('win32-x64','win64');
+        newOs = 'win64';
     }
     if(os.indexOf('darwin') !== -1) {
         newOs = 'macosx';
     }
     if(os.indexOf('linux') !== -1) {
-        newOs = os.replace('linux-x64','linux64').replace('linux-ia32','linux32');
+        newOs = 'linux64';
     }
     return './dist_'+ type +'/'+ filenameUppercase +'-'+ newOs + '-'+ version.replace(/\./g,'-');
 };
@@ -140,7 +133,7 @@ gulp.task('downloadNodes', ['clean:nodes'], function() {
     let toDownload = [];
 
     _.each(nodeUrls, function(url, osArch) {
-        let ext = (0 <= osArch.indexOf('linux') ? '.tar.bz2' : '.zip');
+        let ext = ('.zip');
 
         // donwload nodes
         if (osArch.indexOf(options.platform) !== -1 || options.platform == 'all') {
@@ -174,12 +167,10 @@ gulp.task('unzipNodes', ['downloadNodes'], function(done) {
 
         shell.mkdir('-p', `./nodes/gele/${osArch}`);
 
-        if (0 <= osArch.indexOf('linux')) {            
-            ret = shell.exec(`tar -xf ./nodes/gele/${zipFileName} -C ./nodes/gele/${osArch}`);
 
-        } else {
+
             ret = shell.exec(`unzip -o ./nodes/gele/${zipFileName} -d ./nodes/gele/${osArch}`);
-        }
+
 
         if (0 !== ret.code) {
             console.error('Error unzipping ' + zipFileName);
