@@ -7,7 +7,7 @@ if(location.hash)
 
 // set browser as default tab
 if(!LocalStore.get('selectedTab'))
-    LocalStore.set('selectedTab', 'browser');
+    LocalStore.set('selectedTab', 'wallet');
 
 /**
 The init function of Mist
