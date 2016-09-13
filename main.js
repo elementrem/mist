@@ -25,6 +25,7 @@ const Settings = require('./modules/settings');
 Settings.init();
 
 
+
 if (Settings.cli.version) {
     console.log(Settings.appVersion);
 
@@ -42,6 +43,13 @@ const log = logger.create('main');
 if (Settings.inTestMode) {
     log.info('TEST MODE');
 }
+
+
+
+
+// db
+const db = global.db = require('./modules/db');
+ 
 
 // GLOBAL Variables
 global.path = {
@@ -80,7 +88,6 @@ global.icon = __dirname +'/icons/'+ global.mode +'/icon.png';
 global.language = 'en';
 global.i18n = i18n; // TODO: detect language switches somehow
 
-global.Tabs = Minimongo('tabs');
 
 
 // INTERFACE PATHS
@@ -169,6 +176,17 @@ var splashWindow;
 // This method will be called when Electron has done everything
 // initialization and ready for creating browser windows.
 app.on('ready', function() {
+    // initialise the db
+    global.db.init().then(onReady).catch((err) => {
+        log.error(err);
+
+        app.quit();
+    });
+});
+
+
+
+var onReady = function() {
     // Initialise window mgr
     Windows.init();
 
@@ -205,7 +223,7 @@ app.on('ready', function() {
             }
         });
 
-        syncMinimongo(Tabs, mainWindow.webContents);
+        syncMinimongo(global.db.Tabs, mainWindow);
 
     // WALLET
     } else {
@@ -403,7 +421,7 @@ app.on('ready', function() {
         kickStart();
     }
 
-}); /* on app ready */
+}; /* onReady() */
 
 
 
@@ -430,9 +448,17 @@ var startMainWindow = function() {
         app.quit();
     });
 
-    // instantiate the application menu
-    Tracker.autorun(function(){
-        global.webviews = Tabs.find({},{sort: {position: 1}, fields: {name: 1, _id: 1}}).fetch();
+    // observe Tabs for changes and refresh menu
+    let sortedTabs = global.db.Tabs.addDynamicView('sorted_tabs');
+    sortedTabs.applySimpleSort('position', false);
+
+    let refreshMenu = function() {
+        global.webviews = sortedTabs.data();
+
         appMenu(global.webviews);
-    });
+    };
+
+    global.db.Tabs.on('insert', refreshMenu);
+    global.db.Tabs.on('update', refreshMenu);
+    global.db.Tabs.on('delete', refreshMenu);
 };
