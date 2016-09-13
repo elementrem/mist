@@ -7,25 +7,26 @@
 `sudo apt-get install build-essential git m4 ruby texinfo libbz2-dev libcurl4-openssl-dev libexpat-dev libncurses-dev zlib1g-dev gcc-multilib g++-multilib`   
 
 * [Curl](https://curl.haxx.se/)   
-Ubuntu, for instance `apt-get install curl`   
+Ubuntu, for instance	
+`sudo apt-get install curl`   
 * [Node.js](https://nodejs.org/)    
 Ubuntu, for instance    
 `curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -`  
-`apt-get install -y nodejs`   
-`npm install npm -g`      
-`apt install node-gyp`
+`sudo apt-get install -y nodejs`   
+`sudo npm install npm -g`      
+`sudo apt install node-gyp`
 * [Meteor](https://www.meteor.com/)   
 Ubuntu, for instance `curl https://install.meteor.com/ | sh`   
 * [Meteor Build Client](https://github.com/frozeman/meteor-build-client/)   
-Ubuntu, for instance `npm install -g meteor-build-client`    
+Ubuntu, for instance `sudo npm install -g meteor-build-client`    
 * [Electron](http://electron.atom.io/)    
 Ubuntu, for instance    
-`npm install -g electron-prebuilt@1.2.5`   
-`npm install -g electron-packager`    
+`sudo npm install -g electron-prebuilt@1.2.5`   
+`sudo npm install -g electron-packager`    
 * [Gulp](http://gulpjs.com/)    
-Ubuntu, for instance `npm install -g gulp`  
+Ubuntu, for instance `sudo npm install -g gulp`  
 * [Ruby](https://www.ruby-lang.org/)    
-Ubuntu, for instance `apt-get install ruby-full`
+Ubuntu, for instance `sudo apt-get install ruby-full`
 * [Brew](http://linuxbrew.sh/)    
 Ubuntu, for instance    
 `ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install)"`    
@@ -42,7 +43,8 @@ Ubuntu, for instance
 `sudo apt-get update`     
 `sudo apt-get upgrade`    
 `sudo apt-get install --install-recommends winehq-devel`    
-If your system is 64 bit, enable 32 bit architecture `sudo dpkg --add-architecture i386`
+
+- Elementrem Mist provides support for 64-bit only.
 
 **build**   
 ```bash
