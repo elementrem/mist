@@ -168,7 +168,11 @@ app.on('ready', function() {
 
 
 
+
 var onReady = function() {
+    // sync minimongo
+    syncMinimongo.backendSync(global.db.Tabs);
+
     // Initialise window mgr
     Windows.init();
 
@@ -203,8 +207,6 @@ var onReady = function() {
                 }
             }
         });
-
-        syncMinimongo.backendSync(global.db.Tabs, mainWindow);
 
     // WALLET
     } else {
