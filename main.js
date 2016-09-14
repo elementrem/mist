@@ -40,39 +40,16 @@ if (Settings.cli.ignoreGpuBlacklist) {
 const log = logger.create('main');
 
 
-if (Settings.inTestMode) {
-    log.info('TEST MODE');
+if (Settings.inAutoTestMode) {
+    log.info('AUTOMATED TESTING');
 }
-
+log.info(`Running in production mode: ${Settings.inProductionMode}`);
 
 
 
 // db
 const db = global.db = require('./modules/db');
  
-
-// GLOBAL Variables
-global.path = {
-    HOME: app.getPath('home'),
-    APPDATA: app.getPath('appData'), // Application Support/
-    USERDATA: app.getPath('userData') // Application Aupport/Mist
-};
-
-
-global.dirname  = __dirname;
-
-global.version = Settings.appVersion;
-global.license = Settings.appLicense;
-
-global.production = Settings.inProductionMode;
-log.info(`Running in production mode: ${global.production}`);
-
-global.mode = Settings.uiMode;
-
-global.appName = 'mist' === global.mode ? 'Mist' : 'Elementrem Wallet';
-
-
-
 require('./modules/ipcCommunicator.js');
 const appMenu = require('./modules/menuItems');
 const ipcProviderBackend = require('./modules/ipc/ipcProviderBackend.js');
@@ -83,7 +60,9 @@ global.webviews = [];
 
 global.mining = false;
 
-global.icon = __dirname +'/icons/'+ global.mode +'/icon.png';
+global.icon = __dirname +'/icons/'+ Settings.uiMode +'/icon.png';
+global.mode = Settings.uiMode;
+global.dirname = __dirname;
 
 global.language = 'en';
 global.i18n = i18n; // TODO: detect language switches somehow
@@ -95,13 +74,13 @@ global.interfaceAppUrl;
 global.interfacePopupsUrl;
 
 // WALLET
-if(global.mode === 'wallet') {
+if(Settings.uiMode === 'wallet') {
     log.info('Starting in Wallet mode');
 
-    global.interfaceAppUrl = (global.production)
+    global.interfaceAppUrl = (Settings.inProductionMode)
         ? 'file://' + __dirname + '/interface/wallet/index.html'
         : 'http://localhost:3050';
-    global.interfacePopupsUrl = (global.production)
+    global.interfacePopupsUrl = (Settings.inProductionMode)
         ? 'file://' + __dirname + '/interface/index.html'
         : 'http://localhost:3000';
 
@@ -109,7 +88,7 @@ if(global.mode === 'wallet') {
 } else {
     log.info('Starting in Mist mode');
 
-    let url = (global.production)
+    let url = (Settings.inProductionMode)
         ? 'file://' + __dirname + '/interface/index.html'
         : 'http://localhost:3000';
 
@@ -157,9 +136,13 @@ app.on('before-quit', function(event){
 
         // delay quit, so the sockets can close
         setTimeout(function(){
-            elementremNode.stop().then(function() {
+            elementremNode.stop()
+            .then(function() {
                 killedSocketsAndNodes = true;
 
+                return db.close();
+            })
+            .then(function() {
                 app.quit(); 
             });
         }, 500);
@@ -192,8 +175,7 @@ var onReady = function() {
 
     // check for update
 
-
-    if (!Settings.inTestMode) {
+    if (!Settings.inAutoTestMode) {
         require('./modules/updateChecker').run();
     } 
  // initialize the web3 IPC provider backend
@@ -208,7 +190,7 @@ var onReady = function() {
     // Create the browser window.
 
     // MIST
-    if(global.mode === 'mist') {
+    if(Settings.uiMode === 'mist') {
         mainWindow = Windows.create('main', {
             primary: true,
             electronOptions: {
@@ -223,7 +205,7 @@ var onReady = function() {
             }
         });
 
-        syncMinimongo(global.db.Tabs, mainWindow);
+        syncMinimongo.backendSync(global.db.Tabs, mainWindow);
 
     // WALLET
     } else {
@@ -242,10 +224,10 @@ var onReady = function() {
     }
 
 
-	if (!Settings.inTestMode) {
+	if (!Settings.inAutoTestMode) {
         splashWindow = Windows.create('splash', {
             primary: true,
-            url: global.interfacePopupsUrl + '#splashScreen_'+ global.mode,
+            url: global.interfacePopupsUrl + '#splashScreen_'+ Settings.uiMode,
             show: true,
             electronOptions: {
                 width: 400,
@@ -401,7 +383,7 @@ var onReady = function() {
                     splashWindow.show();
                 }
 
-                if (!Settings.inTestMode) {
+                if (!Settings.inAutoTestMode) {
                     return syncResultPromise;
                 }
             })
@@ -453,6 +435,7 @@ var startMainWindow = function() {
     sortedTabs.applySimpleSort('position', false);
 
     let refreshMenu = function() {
+		log.debug('Refresh menu with tabs');
         global.webviews = sortedTabs.data();
 
         appMenu(global.webviews);

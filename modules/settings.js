@@ -1,3 +1,5 @@
+const electron = require('electron');
+const app = electron.app;
 const logger = require('./utils/logger');
 const packageJson = require('../package.json');
 
@@ -153,7 +155,17 @@ class Settings {
   }
   
   get userDataPath() {
-    return global.path.USERDATA;
+    // Application Aupport/Mist
+    return app.getPath('userData');
+  }
+
+  get appDataPath() {
+    // Application Support/
+    return app.getPath('appData');
+  }
+
+  get userHomePath() {
+    return app.getPath('home');
   }
 
 
@@ -163,6 +175,10 @@ class Settings {
 
   get appVersion () {
     return packageJson.version;
+  }
+
+  get appName () {
+    return 'mist' === this.uiMode ? 'Mist' : 'Elementrem Wallet';
   }
 
   get appLicense () {
@@ -177,7 +193,7 @@ class Settings {
     return defaultConfig.production;
   }
 
-  get inTestMode () {
+  get inAutoTestMode () {
     return !!process.env.TEST_MODE;
   }
  
