@@ -44,8 +44,8 @@ module.exports = function(type) {
                 );
             }
         }
-		
-		binPath = path.resolve(binPath);
+
+        binPath = path.resolve(binPath);
 
         binPath = path.join(binPath, type);
 
@@ -54,13 +54,12 @@ module.exports = function(type) {
         }
 
         resolvedPaths[type] = binPath;
-		
-		console.error(binPath);
+
+        console.error(binPath);
     }
 
     log.debug(`Resolved path for ${type}: ${resolvedPaths[type]}`);
 
     return resolvedPaths[type];
 };
-
 
