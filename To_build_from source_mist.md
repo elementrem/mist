@@ -4,7 +4,7 @@
 ***And it doesn't collect any personally identifiable information.***
 
 **Prerequisite**    
-`sudo apt-get install build-essential git m4 ruby texinfo libbz2-dev libcurl4-openssl-dev libexpat-dev libncurses-dev zlib1g-dev gcc-multilib g++-multilib`   
+`sudo apt-get install unzip build-essential git m4 ruby texinfo libbz2-dev libcurl4-openssl-dev libexpat-dev libncurses-dev zlib1g-dev gcc-multilib g++-multilib`   
 
 * [Curl](https://curl.haxx.se/)   
 Ubuntu, for instance	
