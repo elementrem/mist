@@ -39,9 +39,10 @@ module.exports = function(type) {
 
         if (Settings.inProductionMode) {
             if ('darwin' === process.platform) {
-                binPath = binPath.replace(
-                    'nodes', path.join('..', 'nodes')
-                );
+                binPath = binPath
+                    .replace('nodes', path.join('..', '..', 'nodes'))
+                    .replace('darwin', 'mac') /* gulp script calls it mac, for electron-builder */
+                ;
             }
         }
 
@@ -49,7 +50,7 @@ module.exports = function(type) {
 
         binPath = path.join(binPath, type);
 
-        if (process.platform === 'win32') {
+        if ('win32' === process.platform) {
             binPath += '.exe';
         }
 
