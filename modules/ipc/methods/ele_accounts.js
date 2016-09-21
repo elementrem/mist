@@ -2,6 +2,7 @@
 
 const _ = global._;
 const BaseProcessor = require('./base');
+const db = require('../../db');
 
 
 /**
@@ -18,7 +19,7 @@ module.exports = class extends BaseProcessor {
 
             // if not an admin connection then do a check
             if (!this._isAdminConnection(conn)) {
-                let tab = global.db.Tabs.findOne({ webviewId: conn.id });
+                let tab = db.getCollection('tabs').findOne({ webviewId: conn.id });
 
                 if(_.get(tab, 'permissions.accounts')) {
                     ret.result = _.intersection(ret.result, tab.permissions.accounts);

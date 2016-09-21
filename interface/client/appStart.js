@@ -17,45 +17,46 @@ The init function of Mist
 mistInit = function(){
     console.info('Initialise Mist');
 
-    if (0 <= location.search.indexOf('reset-tabs')) {
-        console.info('Resetting UI tabs');
-        
-        Tabs.remove({});
-    }
 
-    if(!Tabs.findOne('browser')) {
-        console.debug('Insert tabs');
-
-        Tabs.insert({
-            _id: 'browser',
-            url: 'https://elementrem.org',
-            position: 0
-        });
-    }
-    
-    Tabs.upsert({_id: 'wallet'}, {
-        url: 'https://elementrem.org',
-        position: 1,
-        permissions: {
-            admin: true
+    Tabs.onceSynced.then(function() {
+        if (0 <= location.search.indexOf('reset-tabs')) {
+            console.info('Resetting UI tabs');
+            
+            Tabs.remove({});
         }
-    });
 
-    EleAccounts.init();
-    EleBlocks.init();
+        if(!Tabs.findOne('browser')) {
+            console.debug('Insert tabs');
+    
+            Tabs.insert({
+                _id: 'browser',
+                url: 'https://elementrem.org',
+                position: 0
+            });
+        }
+
+
+        Tabs.upsert({_id: 'wallet'}, {
+            url: 'https://elementrem.org',
+            position: 1,
+            permissions: {
+                admin: true
+            }
+        });        
+    })
+    .then(function() {
+        window.trigger('mist-ready');
+    });
 };
 
 
 Meteor.startup(function(){
     console.info('Meteor starting up...');
 
-    // check that it is not syncing before
-    web3.ele.getSyncing(function(e, sync) {
-        if(e || !sync)
-            mistInit();
-    });
+    EleAccounts.init();
+    EleBlocks.init();
 
-
+	mistInit();
     console.debug('Setting language');
 
     // SET default language
