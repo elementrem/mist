@@ -1,3 +1,4 @@
+const path = require('path');
 const electron = require('electron');
 const app = electron.app;
 const logger = require('./utils/logger');
@@ -47,7 +48,7 @@ const argv = require('yargs')
             type: 'string',
             group: 'Mist options:',
         },
-        ipcpath: {
+        rpc: {
             demand: false,
             describe: 'Path to node IPC socket file (this will automatically get passed as an option to Gele).',
             requiresArg: true,
@@ -205,8 +206,48 @@ class Settings {
     return argv.Elepath;
   }
 
-  get ipcPath () {
-    return argv.ipcpath;
+  get rpcMode () {
+    return (argv.rpc && 0 > argv.rpc.indexOf('.ipc')) ? 'http' : 'ipc';
+  }
+
+  get rpcConnectConfig () {
+    if ('ipc' ===  this.rpcMode) {
+        return {
+            path: this.rpcIpcPath,
+        };
+    } else {
+        return {
+            hostPort: this.rpcHttpPath,
+        };        
+    }
+  }
+
+  get rpcHttpPath () {
+    return ('http' === this.rpcMode) ? argv.rpc : null;
+  }
+
+  get rpcIpcPath () {
+    let ipcPath = ('ipc' === this.rpcMode) ? argv.rpc : null;
+
+    if (ipcPath) {
+        return ipcPath;
+    }
+    
+    ipcPath = this.userHomePath;
+
+    if (process.platform === 'darwin') {
+        ipcPath += '/Library/Elementrem/gele.ipc';
+    } else if (process.platform === 'freebsd' ||
+       process.platform === 'linux' ||
+       process.platform === 'sunos') {
+        ipcPath += '/.elementrem/gele.ipc';
+    } else if (process.platform === 'win32') {
+        ipcPath = '\\\\.\\pipe\\gele.ipc';
+    }
+    
+    this._log.debug(`IPC path: ${ipcPath}`);
+
+    return ipcPath;
   }
 
   get nodeType () {

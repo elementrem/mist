@@ -46,6 +46,14 @@ log.info(`Running in production mode: ${Settings.inProductionMode}`);
 
 
 
+
+if ('http' === Settings.rpcMode) {
+    log.warn('Connecting to a node via HTTP instead of IPC. This is less secure!!!!'.toUpperCase());
+}
+
+
+
+
 // db
 const db = global.db = require('./modules/db');
  
@@ -158,6 +166,17 @@ var splashWindow;
 // This method will be called when Electron has done everything
 // initialization and ready for creating browser windows.
 app.on('ready', function() {
+    // if using HTTP RPC then inform user
+    if ('http' === Settings.rpcMode) {
+        dialog.showErrorBox('Insecure RPC connection', `
+WARNING: You are connecting to an Elementrem node via: ${Settings.rpcHttpPath}
+
+This is less secure than using local IPC - your passwords will be sent over the wire as plaintext. 
+
+Only do this if you have secured your HTTP connection or you know what you are doing.
+`);
+    }
+
     // initialise the db
     global.db.init().then(onReady).catch((err) => {
         log.error(err);
