@@ -2,10 +2,9 @@
 @module preloader MistUI
 */
 
-require('./consoleLogCapture')('mist');
+require('./include/common')('mist');
 const electron = require('electron');
 const ipc = electron.ipcRenderer;
-const syncMinimongo = require('../syncMinimongo.js');
 const remote = electron.remote;
 const Menu = remote.Menu;
 const MenuItem = remote.MenuItem;
@@ -16,7 +15,7 @@ const Web3 = require('web3');
 const ipcProviderWrapper = require('../ipc/ipcProviderWrapper.js');
 const web3Admin = require('../web3Admin.js');
 
-require('./setBasePath')('interface');
+require('./include/setBasePath')('interface');
 
 // register with window manager
 ipc.send('backendAction_setWindowId');
@@ -34,7 +33,6 @@ setTimeout(function(){
 }, 1000);
 
 window.mist = mist();
-window.syncMinimongo = syncMinimongo;
 window.ipc = ipc;
 
 
@@ -53,13 +51,12 @@ delete window.Web3;
 // ipc.send('setLanguage', navigator.language.substr(0,2));
 
 
-// A message will be send to a webview/window
+// A message will be sent to a webview/window
 ipc.on('mistUI_windowMessage', function(e, type, id, error, value) {
-
-    if(type === 'requestAccount' && !error) {
+    if((type === 'requestAccount') || (type === 'connectAccount') && !error) {
         Tabs.update({webviewId: id}, {$addToSet: {
             'permissions.accounts': value
-        }})
+        }});
     }
 });
 

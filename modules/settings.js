@@ -1,3 +1,6 @@
+const path = require('path');
+const electron = require('electron');
+const app = electron.app;
 const logger = require('./utils/logger');
 const packageJson = require('../package.json');
 
@@ -45,7 +48,7 @@ const argv = require('yargs')
             type: 'string',
             group: 'Mist options:',
         },
-        ipcpath: {
+        rpc: {
             demand: false,
             describe: 'Path to node IPC socket file (this will automatically get passed as an option to Gele).',
             requiresArg: true,
@@ -123,9 +126,13 @@ const argv = require('yargs')
 
 argv.nodeOptions = [];
 
-for (let optIdx in argv._) {
-    if ('-' === argv._[optIdx].charAt(0)) {
-        argv.nodeOptions = argv._.slice(optIdx);
+
+
+
+for (let optIdx in argv) {
+    if (0 === optIdx.indexOf('node-')) {
+        argv.nodeOptions.push('--' + optIdx.substr(5));
+        argv.nodeOptions.push(argv[optIdx]);
 
         break;
     }
@@ -147,6 +154,21 @@ class Settings {
 
     this._log = logger.create('Settings');    
   }
+  
+  get userDataPath() {
+    // Application Aupport/Mist
+    return app.getPath('userData');
+  }
+
+  get appDataPath() {
+    // Application Support/
+    return app.getPath('appData');
+  }
+
+  get userHomePath() {
+    return app.getPath('home');
+  }
+
 
   get cli () {
     return argv;
@@ -154,6 +176,10 @@ class Settings {
 
   get appVersion () {
     return packageJson.version;
+  }
+
+  get appName () {
+    return 'mist' === this.uiMode ? 'Mist' : 'Elementrem Wallet';
   }
 
   get appLicense () {
@@ -168,7 +194,11 @@ class Settings {
     return defaultConfig.production;
   }
 
-  get gelePath () {
+  get inAutoTestMode () {
+    return !!process.env.TEST_MODE;
+  }
+ 
+ get gelePath () {
     return argv.gelepath;
   }
 
@@ -176,8 +206,48 @@ class Settings {
     return argv.Elepath;
   }
 
-  get ipcPath () {
-    return argv.ipcpath;
+  get rpcMode () {
+    return (argv.rpc && 0 > argv.rpc.indexOf('.ipc')) ? 'http' : 'ipc';
+  }
+
+  get rpcConnectConfig () {
+    if ('ipc' ===  this.rpcMode) {
+        return {
+            path: this.rpcIpcPath,
+        };
+    } else {
+        return {
+            hostPort: this.rpcHttpPath,
+        };        
+    }
+  }
+
+  get rpcHttpPath () {
+    return ('http' === this.rpcMode) ? argv.rpc : null;
+  }
+
+  get rpcIpcPath () {
+    let ipcPath = ('ipc' === this.rpcMode) ? argv.rpc : null;
+
+    if (ipcPath) {
+        return ipcPath;
+    }
+    
+    ipcPath = this.userHomePath;
+
+    if (process.platform === 'darwin') {
+        ipcPath += '/Library/Elementrem/gele.ipc';
+    } else if (process.platform === 'freebsd' ||
+       process.platform === 'linux' ||
+       process.platform === 'sunos') {
+        ipcPath += '/.elementrem/gele.ipc';
+    } else if (process.platform === 'win32') {
+        ipcPath = '\\\\.\\pipe\\gele.ipc';
+    }
+    
+    this._log.debug(`IPC path: ${ipcPath}`);
+
+    return ipcPath;
   }
 
   get nodeType () {
