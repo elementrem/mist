@@ -28,6 +28,7 @@
     "underscore": "^1.8.3",
     "uuid": "^2.0.2",
     "web3": "git+https://github.com/elementrem/web3.js.git#0.16.5",
+    "elementremjs-abi": "git+https://github.com/elementrem/elementremjs-abi.git#0.6.4",
     "yargs": "^4.8.1"
   },
   "devDependencies": {

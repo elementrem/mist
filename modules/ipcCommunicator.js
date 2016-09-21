@@ -16,6 +16,7 @@ const ipc = electron.ipcMain;
 const _ = global._;
 
 const log = logger.create('ipcCommunicator');
+require('./abi.js');
 
 /*
 
