@@ -23,7 +23,7 @@ if (argv.linux) {
 }
 
 builder.build({
-    targets: builder.createTargets(targets, null, "all"),
+    targets: builder.createTargets(targets, null, "x64"),
     devMetadata: {
       build: {
         afterPack: function(params) {
@@ -44,7 +44,7 @@ builder.build({
             if ('wallet' === argv.type) {
               shell.cp(
                 path.join(ROOT_FOLDER, 'Wallet-README.txt'), 
-                path.join(params.appOutDir, 'README')
+                params.appOutDir
               );
             }
           });
