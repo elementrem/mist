@@ -45,20 +45,20 @@ else
 var type = 'mist';
 var filenameLowercase = 'mist';
 var filenameUppercase = 'Mist';
-var applicationName = 'Mist'; 
+var applicationName = 'Mist';
 var electronVersion = require('electron-prebuilt/package.json').version;
-var geleVersion = '1.4.10';
+var geleVersion = '1.4.12';
 var nodeUrls = {
     'mac-x64': {
-        url: 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.10/mac-osx-gele-1.4.10-c32798f.zip',
+        url: 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.12/mac-osx-gele-1.4.12-9c8651d.zip',
         ext: 'zip'
     },
     'linux-x64': {
-        url: 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.10/linux-64bit-gele-1.4.10-c32798f.zip',
+        url: 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.12/linux-64bit-gele-1.4.12-9c8651d.zip',
         ext: 'zip',
     },
     'win-x64': {
-        url: 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.10/Windows-64bit-gele-1.4.10-c32798f.zip',
+        url: 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.12/windows-64bit-gele-1.4.12-9c8651d.zip',
         ext: 'zip',
     },
 };
@@ -370,7 +370,7 @@ gulp.task('bundling-interface', ['switch-production'], function(cb) {
         } else {
             console.log('Pulling https://github.com/elementrem/meteor-dapp-wallet/tree/'+ options.walletSource +' "'+ options.walletSource +'" branch...');
             exec('cd interface/ && meteor-build-client ../dist_'+ type +'/app/interface/ -p "" &&'+
-                 'cd ../dist_'+ type +'/ && git clone --depth 1 https://github.com/elementrem/meteor-dapp-wallet.git && cd meteor-dapp-wallet/app && meteor-build-client ../../app/interface/wallet -p "" && cd ../../ && rm -rf meteor-dapp-wallet', function (err, stdout, stderr) {
+                 'cd ../dist_'+ type +'/ && git clone https://github.com/elementrem/meteor-dapp-wallet.git && cd meteor-dapp-wallet/app && meteor-build-client ../../app/interface/wallet -p "" && cd ../../ && rm -rf meteor-dapp-wallet', function (err, stdout, stderr) {
                 console.log(stdout);
 
                 cb(err);

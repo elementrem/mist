@@ -1,6 +1,6 @@
 {
   "name": "Elementrem_Mist",
-  "version": "0.7.9",
+  "version": "0.8.3",
   "license": "GPL-3.0",
   "author": "Elementrem Mist <elementrem@gmail.com>",
   "repository": {
@@ -15,6 +15,7 @@
     "bignumber.js": "^2.1.4",
     "bluebird": "^3.3.5",
     "deep-extend": "^0.4.1",
+    "elementremjs-abi": "git+https://github.com/elementrem/elementremjs-abi.git#0.6.4",
     "got": "^6.3.0",
     "i18next": "^2.3.4",
     "log-rotate": "^0.2.7",
@@ -25,11 +26,11 @@
     "os-timesync": "^1.0.6",
     "semver": "^5.1.0",
     "solc": "^0.3.6",
+    "typescript": "^1.8.10",
     "underscore": "^1.8.3",
     "uuid": "^2.0.2",
     "web3": "git+https://github.com/elementrem/web3.js.git#0.16.5",
-    "elementremjs-abi": "git+https://github.com/elementrem/elementremjs-abi.git#0.6.4",
-    "yargs": "^4.8.1"
+    "yargs": "^4.3.1"
   },
   "devDependencies": {
     "chai": "^3.5.0",
