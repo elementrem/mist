@@ -64,7 +64,7 @@ sudo apt-get install --install-recommends winehq-devel
 $ git clone https://github.com/elementrem/mist
 $ cd mist   
 ```
-When you run `npm install`, You can see several errors related to the macos. But don't worry. osx dependencies works only on MacOS. This is not related to Linux.
+When you run `npm install`, It may or may not be able to see several errors related to the macos. But don't worry. osx dependencies works only on MacOS. This is not related to Linux.
 ```
 $ npm install
 //Download nodes

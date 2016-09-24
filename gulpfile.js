@@ -95,9 +95,9 @@ function platformIsActive(osArch) {
 // TASKS
 gulp.task('set-variables-mist', function () {
     type = 'mist';
-    filenameLowercase = 'mist';
-    filenameUppercase = 'Mist';
-    applicationName = 'Mist';
+    filenameLowercase = 'elementrem-mist';
+    filenameUppercase = 'Elementrem-Mist';
+    applicationName = 'Elementrem Mist';
 });
 gulp.task('set-variables-wallet', function () {
     type = 'wallet';
@@ -395,9 +395,9 @@ gulp.task('build-dist', ['copy-i18n'], function(cb) {
     console.log('Bundling platforms: ', options.platform);
 
     var appPackageJson = _.extend({}, packJson, {
-        productName: applicationName,
+        productName: 'Elementrem_Mist',
         description: applicationName,
-        homepage: "https://github.com/elementrem/mist",       
+        homepage: "https://github.com/elementrem/",       
         build: {
             appId: "com.elementrem.mist." + type,
             "category": "public.app-category.productivity",
