@@ -13,7 +13,6 @@ const fs = require('fs');
 const Q = require('bluebird');
 const getNodePath = require('./getNodePath.js');
 const EventEmitter = require('events').EventEmitter;
-const getIpcPath = require('./ipc/getIpcPath.js')
 const Sockets = require('./sockets');
 const Settings = require('./settings');
 
@@ -42,7 +41,7 @@ class ElementremNode extends EventEmitter {
         this._type = null;
         this._network = null;
 
-        this._socket = Sockets.get('node-ipc', Sockets.TYPES.WEB3_IPC);
+        this._socket = Sockets.get('node-ipc', Settings.rpcMode);
 
         this.on('data', _.bind(this._logNodeData, this));
     }
@@ -123,12 +122,8 @@ class ElementremNode extends EventEmitter {
      * @return {Promise}
      */
     init () {
-        const ipcPath = getIpcPath();
 
-        // TODO: if connection to external node is successful then query it to
-        // determine node and network type
-
-        return this._socket.connect({path: ipcPath})
+        return this._socket.connect(Settings.rpcConnectConfig)
             .then(()=> {
                 this.state = STATES.CONNECTED;
 
@@ -258,7 +253,6 @@ class ElementremNode extends EventEmitter {
      * @return {Promise}
      */
     _start (nodeType, network) {
-        const ipcPath = getIpcPath();
 
         log.info(`Start node: ${nodeType} ${network}`);
 
@@ -288,9 +282,9 @@ class ElementremNode extends EventEmitter {
                 this._saveUserData('node', this._type);
                 this._saveUserData('network', this._network);
 
-                return this._socket.connect({ path: ipcPath }, {
+                return this._socket.connect(Settings.rpcConnectConfig, {
                     timeout: 30000 /* 30s */
-                })  
+                }) 
                     .then(() => {
                         this.state = STATES.CONNECTED;
                     })
@@ -362,7 +356,7 @@ class ElementremNode extends EventEmitter {
                 // START TESTNET
                 if ('test' == network) {
                     args = (nodeType === 'gele') 
-                        ? ['--testnet', '--fast', '--ipcpath', getIpcPath()] 
+                        ? ['--testnet', '--fast', '--ipcpath', Settings.rpcIpcPath] 
                         : ['--morden', '--unsafe-transactions'];
                 } 
                 // START MAINNET
@@ -444,7 +438,7 @@ class ElementremNode extends EventEmitter {
                     /*
                         We wait a short while before marking startup as successful 
                         because we may want to parse the initial node output for 
-                        errors, etc (see geth port-binding error above)
+                        errors, etc (see gele port-binding error above)
                     */
                     setTimeout(() => {
                         if (STATES.STARTING === this.state) {
@@ -513,7 +507,7 @@ class ElementremNode extends EventEmitter {
         try {
             return fs.readFileSync(fullPath, {encoding: 'utf8'});
         } catch (err){
-            log.error(`Unable to read from ${fullPath}`, err);
+            log.warn(`Unable to read from ${fullPath}`, err);
         }
 
         return null;
@@ -526,13 +520,13 @@ class ElementremNode extends EventEmitter {
         try {
             fs.writeFileSync(fullPath, data, {encoding: 'utf8'});
         } catch (err){
-            log.error(`Unable to write to ${fullPath}`, err);
+            log.warn(`Unable to write to ${fullPath}`, err);
         }
     }
 
 
     _buildFilePath (path) {
-        return global.path.USERDATA + '/' + path;   
+        return Settings.userDataPath + '/' + path;   
     }
 
 }

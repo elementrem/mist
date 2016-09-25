@@ -11,11 +11,6 @@ The img template
 @constructor
 */
 
-Template['elemens_img'].onRendered(function(){
-
-});
-
-
 Template['elemens_img'].helpers({
     /**
     This helper will preload the image, and then inject it later after its loaded

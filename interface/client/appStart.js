@@ -4,11 +4,6 @@
 if(location.hash)
     return;
 
-
-// set browser as default tab
-if(!LocalStore.get('selectedTab'))
-    LocalStore.set('selectedTab', 'browser');
-
 /**
 The init function of Mist
 
@@ -17,49 +12,50 @@ The init function of Mist
 mistInit = function(){
     console.info('Initialise Mist');
 
-    if (0 <= location.search.indexOf('reset-tabs')) {
-        console.info('Resetting UI tabs');
-        
-        Tabs.remove({});
-    }
 
-    if(!Tabs.findOne('browser')) {
-        console.debug('Insert tabs');
+    Tabs.onceSynced.then(function() {
+        if (0 <= location.search.indexOf('reset-tabs')) {
+            console.info('Resetting UI tabs');
+            
+            Tabs.remove({});
+        }
 
-        Tabs.insert({
-            _id: 'browser',
-            url: 'https://elementrem.org',
-            position: 0
-        });
-        
-        // wait for accounts and blocks to be initialized below
-        Meteor.setTimeout(function() {
+        if(!Tabs.findOne('browser')) {
+            console.debug('Insert tabs');
+    
             Tabs.insert({
-                _id: 'wallet',
-                url: 'https://wallet.elementrem.org',
-                position: 1,
-                permissions: {
-                    accounts: web3.ele.accounts
-                }
+                _id: 'browser',
+                url: 'https://elementrem.org',
+                position: 0
             });
-        }, 1500);
-    }
+        }
 
-    EleAccounts.init();
-    EleBlocks.init();
+
+        Tabs.upsert({_id: 'wallet'}, {
+            url: 'https://elementrem.org',
+            position: 1,
+            permissions: {
+                admin: true
+            }
+        });
+
+        // Sets browser as default tab if:
+        // 1) there's no record of selected tab
+        // 2) data is corrupted (no saved tab matches localstore)
+        if(!LocalStore.get('selectedTab') || !Tabs.findOne(LocalStore.get('selectedTab'))){
+            LocalStore.set('selectedTab', 'wallet');
+        }
+    });
 };
 
 
 Meteor.startup(function(){
     console.info('Meteor starting up...');
 
-    // check that it is not syncing before
-    web3.ele.getSyncing(function(e, sync) {
-        if(e || !sync)
-            mistInit();
-    });
+    EleAccounts.init();
+    EleBlocks.init();
 
-
+	mistInit();
     console.debug('Setting language');
 
     // SET default language
