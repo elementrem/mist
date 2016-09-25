@@ -425,6 +425,11 @@ gulp.task('build-dist', ['copy-i18n'], function(cb) {
                     "y": 142,
                     "type": "file"
                 }]
+            },
+            linux: {
+                target: [
+                    "deb"
+                ]
             }
         },
         directories: {

@@ -9,12 +9,13 @@
 ![](img/wallet_main.png)	
 ***   
 
+------------------------------------
 
 ## Installation     
 ### [Downalod lastest version(To build from source is unnecessary)](https://github.com/elementrem/mist/releases)   
----------------
 ### [To build from source](To_build_from%20source_mist.md)	
 
+------------------------------------
 
 ## Install Path
 The paths which store your wallets database and node are different:     
