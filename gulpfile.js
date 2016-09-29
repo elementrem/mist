@@ -47,18 +47,18 @@ var filenameLowercase = 'mist';
 var filenameUppercase = 'Mist';
 var applicationName = 'Mist';
 var electronVersion = require('electron-prebuilt/package.json').version;
-var geleVersion = '1.4.13';
+var geleVersion = '1.4.14';
 var nodeUrls = {
     'mac-x64': {
-        url: 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.13/mac-osx-gele-1.4.13-88a370f.zip',
+        url: 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.14/mac-osx-gele-1.4.14-47d51ec.zip',
         ext: 'zip'
     },
     'linux-x64': {
-        url: 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.13/linux-64bit-gele-1.4.13-88a370f.zip',
+        url: 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.14/linux-64bit-gele-1.4.14-47d51ec.zip',
         ext: 'zip',
     },
     'win-x64': {
-        url: 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.13/windows-64bit-gele-1.4.13-88a370f.zip',
+        url: 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.14/windows-64bit-gele-1.4.14-47d51ec.zip',
         ext: 'zip',
     },
 };
