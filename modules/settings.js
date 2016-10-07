@@ -1,6 +1,8 @@
 const path = require('path');
 const electron = require('electron');
+const fs = require('fs');
 const app = electron.app;
+
 const logger = require('./utils/logger');
 const packageJson = require('../package.json');
 
@@ -17,8 +19,10 @@ try {
 
 
 
+
+
 const argv = require('yargs')
-    .usage('Usage: $0 [Mist options] -- [Node options]')
+    .usage('Usage: $0 [Mist options] [Node options]')
     .option({
         mode: {
             alias: 'm',
@@ -50,7 +54,7 @@ const argv = require('yargs')
         },
         rpc: {
             demand: false,
-            describe: 'Path to node IPC socket file (this will automatically get passed as an option to Gele).',
+            describe: 'Path to node IPC socket file OR HTTP RPC hostport (if IPC socket file then --node-ipcpath will be set with this value).',
             requiresArg: true,
             nargs: 1,
             type: 'string',
@@ -64,7 +68,7 @@ const argv = require('yargs')
             type: 'string',
             group: 'Mist options:',
         },
-        Elepath: {
+        elepath: {
             demand: false,
             describe: 'Path to Ele executable to use instead of default.',
             requiresArg: true,
@@ -115,7 +119,7 @@ const argv = require('yargs')
             type: 'boolean',
         },
         '': {
-            describe: 'All options will be passed onto the node (e.g. Gele).',
+            describe: 'To pass options to the underlying node (e.g. Gele) use the --node- prefix, e.g. --node-datadir',
             group: 'Node options:',
         }
     })
@@ -124,10 +128,8 @@ const argv = require('yargs')
     .parse(process.argv.slice(1));
 
 
+
 argv.nodeOptions = [];
-
-
-
 
 for (let optIdx in argv) {
     if (0 === optIdx.indexOf('node-')) {
@@ -154,7 +156,7 @@ class Settings {
 
     this._log = logger.create('Settings');    
   }
-  
+
   get userDataPath() {
     // Application Aupport/Mist
     return app.getPath('userData');
@@ -168,7 +170,6 @@ class Settings {
   get userHomePath() {
     return app.getPath('home');
   }
-
 
   get cli () {
     return argv;
@@ -197,13 +198,13 @@ class Settings {
   get inAutoTestMode () {
     return !!process.env.TEST_MODE;
   }
- 
- get gelePath () {
+
+  get gelePath () {
     return argv.gelepath;
   }
 
-  get ElePath () {
-    return argv.Elepath;
+  get elePath () {
+    return argv.elepath;
   }
 
   get rpcMode () {
@@ -262,6 +263,45 @@ class Settings {
     return argv.nodeOptions;
   }
 
+  loadUserData (path) {
+      const fullPath = this.constructUserDataPath(path);
+
+      this._log.trace('Load user data', fullPath);
+
+      // check if the file exists
+      try {
+          fs.accessSync(fullPath, fs.R_OK);
+      } catch (err){
+          return null;
+      }
+
+      // try to read it
+      try {
+          return fs.readFileSync(fullPath, {encoding: 'utf8'});
+      } catch (err){
+          this._log.warn(`File not readable: ${fullPath}`, err);
+      }
+
+      return null;
+  }
+
+
+  saveUserData (path, data) {
+      if (!data) return; // return so we dont write null, or other invalid data
+
+      const fullPath = this.constructUserDataPath(path);
+
+      try {
+          fs.writeFileSync(fullPath, data, {encoding: 'utf8'});
+      } catch (err){
+          this._log.warn(`Unable to write to ${fullPath}`, err);
+      }
+  }
+
+
+  constructUserDataPath (filePath) {
+      return path.join(this.userDataPath, filePath);   
+  }
 
 }
 

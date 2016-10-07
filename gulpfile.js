@@ -45,20 +45,20 @@ else
 var type = 'mist';
 var filenameLowercase = 'mist';
 var filenameUppercase = 'Mist';
-var applicationName = 'Mist';
+var applicationName = 'Mist'; 
 var electronVersion = require('electron-prebuilt/package.json').version;
-var geleVersion = '1.4.15';
+var geleVersion = '1.4.16';
 var nodeUrls = {
     'mac-x64': {
-        url: 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.15/mac-osx-gele-1.4.15-186aaec.zip',
+        url: 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.16/mac-osx-gele-1.4.16-3a5f91c.zip',
         ext: 'zip'
     },
     'linux-x64': {
-        url: 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.15/linux-64bit-gele-1.4.15-186aaec.zip',
+        url: 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.16/linux-64bit-gele-1.4.16-3a5f91c.zip',
         ext: 'zip',
     },
     'win-x64': {
-        url: 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.15/windows-64bit-gele-1.4.15-186aaec.zip',
+        url: 'https://github.com/elementrem/go-elementrem/releases/download/v1.4.16/windows-64bit-gele-1.4.16-3a5f91c.zip',
         ext: 'zip',
     },
 };
@@ -395,9 +395,10 @@ gulp.task('build-dist', ['copy-i18n'], function(cb) {
     console.log('Bundling platforms: ', options.platform);
 
     var appPackageJson = _.extend({}, packJson, {
-        productName: 'Elementrem_Mist',
+        name: applicationName.replace(/\s/, ''),
+        productName: applicationName,
         description: applicationName,
-        homepage: "https://github.com/elementrem/",       
+        homepage: "https://github.com/elementrem/mist",       
         build: {
             appId: "com.elementrem.mist." + type,
             "category": "public.app-category.productivity",
@@ -425,11 +426,6 @@ gulp.task('build-dist', ['copy-i18n'], function(cb) {
                     "y": 142,
                     "type": "file"
                 }]
-            },
-            linux: {
-                target: [
-                    "deb"
-                ]
             }
         },
         directories: {
@@ -583,3 +579,4 @@ gulp.task('test-wallet', function() {
 
 
 gulp.task('default', ['mist']);
+

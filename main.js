@@ -1,5 +1,7 @@
 "use strict";
 
+if(require('electron-squirrel-startup')) return;
+
 global._ = require('./modules/utils/underscore');
 
 const Q = require('bluebird');
@@ -11,6 +13,7 @@ const fs = require('fs');
 const electron = require('electron');
 const app = electron.app;
 const dialog = electron.dialog;
+const shell = electron.shell;
 const timesync = require("os-timesync");
 const syncMinimongo = require('./modules/syncMinimongo.js');
 const ipc = electron.ipcMain;
@@ -42,10 +45,8 @@ const log = logger.create('main');
 if (Settings.inAutoTestMode) {
     log.info('AUTOMATED TESTING');
 }
+
 log.info(`Running in production mode: ${Settings.inProductionMode}`);
-
-
-
 
 if ('http' === Settings.rpcMode) {
     log.warn('Connecting to a node via HTTP instead of IPC. This is less secure!!!!'.toUpperCase());
@@ -457,7 +458,8 @@ var startMainWindow = function() {
     sortedTabs.applySimpleSort('position', false);
 
     let refreshMenu = function() {
-		clearTimeout(global._refreshMenuFromTabsTimer);
+        clearTimeout(global._refreshMenuFromTabsTimer);
+
         global._refreshMenuFromTabsTimer = setTimeout(function() {
             log.debug('Refresh menu with tabs');
 

@@ -19,9 +19,9 @@ http://www.elementrem.org/
 The paths which store your wallets database and node are different:
 
 The wallet (Mist) stores its data at:
-- Mac: ~/Library/Application Support/Elementrem_Mist
-- Windows: %APPDATA%\Roaming\Elementrem_Mist
-- Linux: ~/.config/Elementrem_Mist
+- Mac: ~/Library/Application Support/Elementrem Wallet
+- Windows: %APPDATA%\Roaming\Elementrem Wallet
+- Linux: ~/.config/Elementrem Wallet
 
 The nodes data is stored at:
 - Mac: ~/Library/Elementrem
