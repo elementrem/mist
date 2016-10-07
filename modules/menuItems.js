@@ -68,7 +68,7 @@ var menuTempl = function(webviews) {
                 click: function(){
                     Windows.createPopup('about', {
                         electronOptions: {
-                            width: 420, 
+                            width: 420,
                             height: 230,
                             alwaysOnTop: true,
                         }
@@ -84,7 +84,7 @@ var menuTempl = function(webviews) {
                 type: 'separator'
             },
             {
-                label: 'Services',
+                label: i18n.t('mist.applicationMenu.app.services', {app: Settings.appName}),
                 role: 'services',
                 submenu: []
             },
@@ -150,7 +150,7 @@ var menuTempl = function(webviews) {
                                     path = Settings.appDataPath + '\\Web3\\keys';
                                 else
                                     path += '/.web3/keys';
-                            
+
                             // gele
                             } else {
                                 if(process.platform === 'darwin')
@@ -218,6 +218,34 @@ var menuTempl = function(webviews) {
         ]
     })
 
+    let genSwitchLanguageFunc = (lang_code) => function(menuItem, browserWindow){
+        browserWindow.webContents.executeJavaScript(
+            `TAPi18n.setLanguage("${lang_code}");`
+        );
+        ipc.emit("backendAction_setLanguage", {}, lang_code);
+    }
+    let currentLanguage = i18n.getBestMatchedLangCode(global.language);
+
+    let languageMenu =
+    Object.keys(i18n.options.resources)
+    .filter(lang_code => lang_code != 'dev')
+    .map(lang_code => {
+        menuItem = {
+            label: i18n.t('mist.applicationMenu.view.langCodes.' + lang_code),
+            type: 'checkbox',
+            checked: (currentLanguage === lang_code),
+            click: genSwitchLanguageFunc(lang_code)
+        }
+        return menuItem
+    });
+    let defaultLang = i18n.getBestMatchedLangCode(app.getLocale());
+    languageMenu.unshift({
+        label:  i18n.t('mist.applicationMenu.view.default'),
+        click: genSwitchLanguageFunc(defaultLang)
+    }, {
+        type: 'separator'
+    });
+
     // VIEW
     menu.push({
         label: i18n.t('mist.applicationMenu.view.label'),
@@ -233,10 +261,13 @@ var menuTempl = function(webviews) {
 
                     mainWindow.window.setFullScreen(!mainWindow.window.isFullScreen());
                 }
+            },
+            {
+                label: i18n.t('mist.applicationMenu.view.languages'),
+                submenu: languageMenu
             }
         ]
     })
-
 
     // DEVELOP
     var devToolsMenu = [];
@@ -279,8 +310,13 @@ var menuTempl = function(webviews) {
     devToolsMenu = [{
             label: i18n.t('mist.applicationMenu.develop.devTools'),
             submenu: devtToolsSubMenu
-        },
-		{
+        },{
+            label: i18n.t('mist.applicationMenu.develop.runTests'),
+            enabled: (Settings.uiMode === 'mist'),
+            click: function(){
+                Windows.getByType('main').send('runTests', 'webview');
+            }
+        },{
             label: i18n.t('mist.applicationMenu.develop.logFiles'),
             click: function(){
                 var log = '';
@@ -302,6 +338,32 @@ var menuTempl = function(webviews) {
             }
         }
     ];
+
+    // add node switching menu
+    devToolsMenu.push({
+        type: 'separator'
+    });
+    // add node switch
+    if(process.platform === 'darwin' || process.platform === 'win32') {
+        devToolsMenu.push({
+            label: i18n.t('mist.applicationMenu.develop.elementremNode'),
+            submenu: [
+              {
+                label: 'Gele 1.4.15 (Go)',
+                checked: elementremNode.isOwnNode && elementremNode.isGele,
+                enabled: elementremNode.isOwnNode,
+                type: 'checkbox',
+                click: function(){
+                    restartNode('gele');
+                }
+              }
+        ]});
+    }
+
+    menu.push({
+        label: ((global.mining) ? '⛏ ' : '') + i18n.t('mist.applicationMenu.develop.label'),
+        submenu: devToolsMenu
+    })
 
     // WINDOW
     menu.push({
@@ -331,6 +393,5 @@ var menuTempl = function(webviews) {
 
     return menu;
 };
-
 
 module.exports = createMenu;

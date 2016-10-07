@@ -2,9 +2,10 @@
     "mist": {
         "applicationMenu": {
             "app": {
-                "checkForUpdates": "Check for updates...",
                 "label": "__app__",
                 "about": "About __app__",
+                "checkForUpdates": "Check for updates...",
+                "services": "Services",
                 "hide": "Hide __app__",
                 "hideOthers": "Hide Others",
                 "showAll": "Show All",
@@ -21,7 +22,12 @@
             },
             "view": {
                 "label": "View",
-                "fullscreen": "Toggle Fullscreen"
+                "fullscreen": "Toggle Fullscreen",
+                "languages": "Change language",
+                "default": "Default",
+                "langCodes" : {
+                    "en": "English"
+                }
             },
             "accounts": {
                 "label": "Accounts",
@@ -221,7 +227,7 @@
                     "nodeNotStartedYet": "Wait a few more seconds until your node is fully started and try again",
                     "unknownFile": "File not recognised.",
                     "wrongPassword": "Wrong password.",
-                    "importFailed": "Couldn't import the file got: __error__"
+                    "importFailed": "Couldn't import the file, got: __error__"
                 }
             }
         }

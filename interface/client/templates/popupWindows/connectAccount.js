@@ -74,7 +74,7 @@ Template['popupWindows_connectAccount'].helpers({
     @return {Number}
     */
     'accountNumber': function(){
-        var accounts = _.pluck(EthAccounts.find().fetch(), 'address');
+        var accounts = _.pluck(EleAccounts.find().fetch(), 'address');
 
         return _.intersection(accounts, TemplateVar.get('accounts')).length;
     },
@@ -85,7 +85,7 @@ Template['popupWindows_connectAccount'].helpers({
     @return {Array}
     */
     'selectedAccounts': function() {
-        var accounts = _.pluck(EthAccounts.find().fetch(), 'address');
+        var accounts = _.pluck(EleAccounts.find().fetch(), 'address');
         return _.intersection(accounts, TemplateVar.get('accounts'));
     },
     /**

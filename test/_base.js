@@ -195,7 +195,7 @@ const Utils = {
     let accounts = this.web3.ele.accounts;
 
     let balances = accounts.map((acc) => 
-      this.web3.fromWei(this.web3.ele.getBalance(acc), 'elemen') + ''
+      this.web3.fromMey(this.web3.ele.getBalance(acc), 'element') + ''
     );
 
     accounts = accounts.map(a => a.toLowerCase());
@@ -232,7 +232,7 @@ const Utils = {
 
     const accLinks = yield this.client.elemens('.wallet-box');
 
-    yield this.client.elemenIdClick(accLinks.value[idx].ELEMEN);
+    yield this.client.elementIdClick(accLinks.value[idx].ELEMENT);
 
     yield Q.delay(1000);
   },

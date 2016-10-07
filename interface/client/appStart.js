@@ -12,7 +12,6 @@ The init function of Mist
 mistInit = function(){
     console.info('Initialise Mist');
 
-
     Tabs.onceSynced.then(function() {
         if (0 <= location.search.indexOf('reset-tabs')) {
             console.info('Resetting UI tabs');
@@ -22,14 +21,13 @@ mistInit = function(){
 
         if(!Tabs.findOne('browser')) {
             console.debug('Insert tabs');
-    
+
             Tabs.insert({
                 _id: 'browser',
                 url: 'https://elementrem.org',
                 position: 0
             });
         }
-
 
         Tabs.upsert({_id: 'wallet'}, {
             url: 'https://elementrem.org',
@@ -55,7 +53,8 @@ Meteor.startup(function(){
     EleAccounts.init();
     EleBlocks.init();
 
-	mistInit();
+    mistInit();
+
     console.debug('Setting language');
 
     // SET default language

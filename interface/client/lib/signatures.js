@@ -4650,7 +4650,7 @@ window.SIGNATURES = {
 		"TokenSale(uint256,uint256)"
 	],
 	"0x7b1a4909": [
-		"transferEle(address,uint256)"
+		"transferELE(address,uint256)"
 	],
 	"0xf29d2f28": [
 		"setTokenHolder(address)"

@@ -64,7 +64,7 @@ test['deposit into account'] = function*() {
 
   // links
   const accLinks = yield this.getUiElemens('.dapp-actionbar li');
-  yield client.elemenIdClick(accLinks[0].ELEMEN);
+  yield client.elementIdClick(accLinks[0].ELEMENT);
 
   // fill in send form and submit
   yield _completeSendForm.call(this, 1);

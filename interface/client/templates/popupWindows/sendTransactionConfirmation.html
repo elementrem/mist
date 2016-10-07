@@ -12,7 +12,7 @@
                     {{/if}}
                 {{/if}}
             
-				<div class="container">
+                <div class="container">
                 <div class="transaction-parties">
                     <div>
                         {{#if TemplateVar.get "fromIsContract"}}
@@ -34,6 +34,7 @@
                             </div>
                         {{/if}}
                     </div>
+                    
                     <div>
                         {{#if to}}
                             {{#if TemplateVar.get "toIsContract"}}
@@ -43,7 +44,7 @@
                             {{/if}}
                             {{> dapp_identicon identity=to class="dapp-large"}}
                             <br>
-                            <span class="simptip-position-bottom simptip-movable" data-tooltip="{{to}}">{{shortenAddress to}}</span>
+                            <a href="http://www.elementrem.net/addr/{{to}}#code" class="simptip-position-bottom simptip-movable" data-tooltip="{{to}}" target="_blank">{{shortenAddress to}}</a>
                         {{else}}
                             <i class="circle-icon icon-doc"></i>
                             <br>
@@ -51,7 +52,6 @@
                         {{/if}}
                     </div>
                 </div>
-
 
                 {{#if transactionInvalid}}
                     <p class="info dapp-error"> {{{i18n "mist.popupWindows.sendTransactionConfirmation.estimatedGasError"}}} </p>
@@ -62,7 +62,7 @@
 
                     {{#unless to}}
                         <p class="info">{{{i18n "mist.popupWindows.sendTransactionConfirmation.contractCreationInfo"}}}</p>
-                    {{/unless}}				
+                    {{/unless}}
                 {{/if}}
 
                 {{#if data}}
@@ -148,11 +148,11 @@
                         <button class="cancel" type="button">{{i18n "buttons.cancel"}}</button>
                         <button class="ok dapp-primary-button" type="submit">{{i18n "mist.popupWindows.sendTransactionConfirmation.buttons.sendTransaction"}}</button>
                     </div>
-
+                
                 {{/if}}
-				</footer>
+                </footer>
             {{/with}}
-
+            
         </form>
     </div>
 </template>

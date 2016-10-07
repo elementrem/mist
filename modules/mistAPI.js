@@ -9,8 +9,6 @@ const remote = electron.remote;
 const ipc = electron.ipcRenderer;
 
 module.exports = function(isWallet) {
-
-
     var queue = [];
     var prefix = 'entry_';
 
@@ -70,12 +68,13 @@ module.exports = function(isWallet) {
     */
     
     var mist = {
-		syncMinimongo: syncMinimongo,
+        syncMinimongo: syncMinimongo,
         callbacks: {},
         dirname: remote.getGlobal('dirname'),
         version: packageJson.version,
         mode: remote.getGlobal('mode'),
         license: packageJson.license,
+        shell: remote.shell,
         platform: process.platform,
         requestAccount:  function(callback){
             if(callback) {

@@ -122,7 +122,6 @@ class ElementremNode extends EventEmitter {
      * @return {Promise}
      */
     init () {
-
         return this._socket.connect(Settings.rpcConnectConfig)
             .then(()=> {
                 this.state = STATES.CONNECTED;
@@ -135,6 +134,7 @@ class ElementremNode extends EventEmitter {
                 log.info(`Node type: ${this.defaultNodeType}`);
                 log.info(`Network: ${this.defaultNetwork}`);
 
+                // if not, start node yourself
                 return this._start(this.defaultNodeType, this.defaultNetwork)
                     .catch((err) => {
                         log.error('Failed to start node', err);
@@ -226,7 +226,7 @@ class ElementremNode extends EventEmitter {
 
 
     getLog () {
-        return this._loadUserData('node.log');
+        return Settings.loadUserData('node.log');
     }
 
 
@@ -253,7 +253,6 @@ class ElementremNode extends EventEmitter {
      * @return {Promise}
      */
     _start (nodeType, network) {
-
         log.info(`Start node: ${nodeType} ${network}`);
 
         const isTestNet = ('test' === network);
@@ -279,12 +278,13 @@ class ElementremNode extends EventEmitter {
                 this._node = proc;
                 this.state = STATES.STARTED;
 
-                this._saveUserData('node', this._type);
-                this._saveUserData('network', this._network);
+                Settings.saveUserData('node', this._type);
+                Settings.saveUserData('network', this._network);
+
 
                 return this._socket.connect(Settings.rpcConnectConfig, {
-                    timeout: 30000 /* 30s */
-                }) 
+                        timeout: 30000 /* 30s */
+                    })
                     .then(() => {
                         this.state = STATES.CONNECTED;
                     })
@@ -308,7 +308,7 @@ class ElementremNode extends EventEmitter {
 
                 // if unable to start ele node then write gele to defaults
                 if ('ele' === nodeType) {
-                    this._saveUserData('node', 'gele');
+                    Settings.saveUserData('node', 'gele');
                 }
 
                 throw err;
@@ -344,7 +344,7 @@ class ElementremNode extends EventEmitter {
             log.trace('Rotate log file');
 
             // rotate the log file
-            logRotate(this._buildFilePath('node.log'), {count: 5}, (err) => {
+            logRotate(Settings.constructUserDataPath('node.log'), {count: 5}, (err) => {
                 if (err) {
                     log.error('Log rotation problems', err);
 
@@ -394,7 +394,7 @@ class ElementremNode extends EventEmitter {
 
                 // we need to read the buff to prevent node from not working
                 proc.stderr.pipe(
-                    fs.createWriteStream(this._buildFilePath('node.log'), { flags: 'a' })
+                    fs.createWriteStream(Settings.constructUserDataPath('node.log'), { flags: 'a' })
                 );
 
                 // when proc outputs data
@@ -494,40 +494,10 @@ class ElementremNode extends EventEmitter {
     _loadDefaults () {
         log.trace('Load defaults');
 
-        this.defaultNodeType = Settings.nodeType || this._loadUserData('node') || DEFAULT_NODE_TYPE;
-        this.defaultNetwork = Settings.network || this._loadUserData('network') || DEFAULT_NETWORK;
+        this.defaultNodeType = Settings.nodeType || Settings.loadUserData('node') || DEFAULT_NODE_TYPE;
+        this.defaultNetwork = Settings.network || Settings.loadUserData('network') || DEFAULT_NETWORK;
     }
 
-
-    _loadUserData (path) {
-        const fullPath = this._buildFilePath(path);
-
-        log.trace('Load user data', fullPath);
-
-        try {
-            return fs.readFileSync(fullPath, {encoding: 'utf8'});
-        } catch (err){
-            log.warn(`Unable to read from ${fullPath}`, err);
-        }
-
-        return null;
-    }
-
-
-    _saveUserData (path, data) {
-        const fullPath = this._buildFilePath(path);
-
-        try {
-            fs.writeFileSync(fullPath, data, {encoding: 'utf8'});
-        } catch (err){
-            log.warn(`Unable to write to ${fullPath}`, err);
-        }
-    }
-
-
-    _buildFilePath (path) {
-        return Settings.userDataPath + '/' + path;   
-    }
 
 }
 

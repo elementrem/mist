@@ -44,7 +44,7 @@ builder.build({
             if ('wallet' === argv.type) {
               shell.cp(
                 path.join(ROOT_FOLDER, 'Wallet-README.txt'), 
-                params.appOutDir
+                path.join(params.appOutDir, 'README')
               );
             }
           });
