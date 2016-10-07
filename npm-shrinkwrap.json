@@ -1,6 +1,6 @@
 {
   "name": "Elementrem_Mist",
-  "version": "0.8.45",
+  "version": "0.8.47",
   "dependencies": {
     "7zip-bin": {
       "version": "1.0.6",
@@ -2167,9 +2167,9 @@
       "resolved": "https://registry.npmjs.org/load-json-file/-/load-json-file-1.1.0.tgz"
     },
     "lodash": {
-      "version": "4.16.3",
+      "version": "4.16.4",
       "from": "lodash@>=4.8.0 <5.0.0",
-      "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.16.3.tgz"
+      "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.16.4.tgz"
     },
     "lodash._basecopy": {
       "version": "3.0.1",
