@@ -1,6 +1,6 @@
 {
   "name": "Elementrem_Mist",
-  "version": "0.8.47",
+  "version": "0.8.5",
   "dependencies": {
     "7zip-bin": {
       "version": "1.0.6",
