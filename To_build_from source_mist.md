@@ -22,6 +22,7 @@ Don't expect that you can build app for all platforms on one platform.
 `sudo apt-get install curl`   
 * [Node.js](https://nodejs.org/)    
 `curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -`  
+`sudo apt-get update`       
 `sudo apt-get install -y nodejs`   
 * [Meteor](https://www.meteor.com/)   
 `curl https://install.meteor.com/ | sh`   
@@ -35,27 +36,35 @@ Don't expect that you can build app for all platforms on one platform.
 `sudo apt-get install ruby-full`
 * [Brew](http://linuxbrew.sh/)      
 ```
-ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install)" 
-export PATH="$HOME/.linuxbrew/bin:$PATH" 
-export MANPATH="$HOME/.linuxbrew/share/man:$MANPATH" 
-export INFOPATH="$HOME/.linuxbrew/share/info:$INFOPATH" 
-source ~/.bashrc
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)"
+$ nano ~/.profile
+export PATH="$HOME/.linuxbrew/bin:$HOME/.linuxbrew/sbin:$PATH"
+export PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$PATH"
+$ source ~/.profile
 brew update 
 brew install hello
+brew install Caskroom/cask/xquartz 
 ```
 
 ####Tools for the Linux binaries     
 `brew install gnu-tar libicns graphicsmagick xz`
 
 ####Tools for the Win binaries
+* [mono](http://www.mono-project.com/)
+```
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+echo "deb http://download.mono-project.com/repo/ubuntu xenial main" | sudo tee /etc/apt/sources.list.d/mono-official.list
+sudo apt-get update
+sudo apt-get install mono-complete
+```
+
 * [Wine](https://www.winehq.org/)   
 ```
-sudo add-apt-repository ppa:wine/wine-builds 
-sudo apt update
-brew install Caskroom/cask/xquartz 
-brew install wine
-brew install mono
-sudo apt-get install --install-recommends winehq-devel 
+wget -nc https://dl.winehq.org/wine-builds/Release.key
+sudo apt-key add Release.key
+sudo apt-add-repository https://dl.winehq.org/wine-builds/ubuntu/
+sudo apt-get update
+sudo apt-get install --install-recommends winehq-stable
 ```
 
 ####Create a binaries
