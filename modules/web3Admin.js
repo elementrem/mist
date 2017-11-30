@@ -22,6 +22,7 @@ module.exports = {
                 insertMethod('stopRPC', 'admin_stopRPC', 0, [], web3._extend.formatters.formatOutputBool)
             ],
             properties:
+			[
                 insertProperty('nodeInfo', 'admin_nodeInfo', web3._extend.formatters.formatOutputString),
                 insertProperty('peers', 'admin_peers', null),
                 insertProperty('datadir', 'admin_datadir', web3._extend.formatters.formatOutputString),
