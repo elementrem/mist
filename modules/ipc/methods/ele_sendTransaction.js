@@ -5,6 +5,7 @@ const Windows = require('../../windows');
 const Q = require('bluebird');
 const electron = require('electron');
 const ipc = electron.ipcMain;
+const BlurOverlay = require('../../blurOverlay');
 
 
 /**
@@ -50,13 +51,17 @@ module.exports = class extends BaseProcessor {
             let modalWindow = Windows.createPopup('sendTransactionConfirmation', {
                 sendData: ['data', payload.params[0]],
                 electronOptions: {
-                    width: 580, 
-                    height: 550, 
-                    alwaysOnTop: false,
+                    width: 580,
+                    height: 550,
+                    alwaysOnTop: true
                 },
             });
 
+			BlurOverlay.enable();
+			
             modalWindow.on('closed', () => {
+				BlurOverlay.disable();
+				
                 // user cancelled?
                 if (!modalWindow.processed) {
                     reject(this.ERRORS.METHOD_DENIED);
