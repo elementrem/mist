@@ -5,7 +5,6 @@
 require('./include/common')('popup-no-web3');
 const electron = require('electron');
 const mist = require('../mistAPI.js');
-const syncMinimongo = require('../syncMinimongo.js');
 const ipc = electron.ipcRenderer;
 const ipcProviderWrapper = require('../ipc/ipcProviderWrapper.js');
 
@@ -24,4 +23,3 @@ ipc.on('data', function(e, data) {
 
 window.ipc = ipc;
 window.mist = mist();
-window.syncMinimongo = syncMinimongo;

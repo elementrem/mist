@@ -4,6 +4,7 @@
 
 const electron = require('electron');
 const packageJson = require('./../package.json');
+const syncMinimongo = require('./syncMinimongo.js');
 const remote = electron.remote;
 const ipc = electron.ipcRenderer;
 
@@ -67,10 +68,13 @@ module.exports = function(isWallet) {
     */
     
     var mist = {
+        syncMinimongo: syncMinimongo,
         callbacks: {},
+        dirname: remote.getGlobal('dirname'),
         version: packageJson.version,
         mode: remote.getGlobal('mode'),
         license: packageJson.license,
+        shell: remote.shell,
         platform: process.platform,
         requestAccount:  function(callback){
             if(callback) {
