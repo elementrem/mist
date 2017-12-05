@@ -1346,9 +1346,9 @@
       "resolved": "https://registry.npmjs.org/simple-get/-/simple-get-1.4.3.tgz"
     },
     "solc": {
-      "version": "0.4.18",
-      "from": "git+https://github.com/elementrem/solc-js.git#0.4.18",
-      "resolved": "git+https://github.com/elementrem/solc-js.git#a2e1f9861b6293568d6b04ee321b83c2329000bd"
+      "version": "0.4.10",
+      "from": "git+https://github.com/elementrem/solc-js.git#0.4.11",
+      "resolved": "git+https://github.com/elementrem/solc-js.git#3fafbe6f8cf68d8875619ec1024b98a4559bac52"
     },
     "source-map": {
       "version": "0.5.6",
