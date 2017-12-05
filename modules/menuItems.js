@@ -349,7 +349,7 @@ var menuTempl = function(webviews) {
             label: i18n.t('mist.applicationMenu.develop.elementremNode'),
             submenu: [
               {
-                label: 'Gele 1.5.97 (Go)',
+                label: 'Gele 1.5.99 (Go)',
                 checked: elementremNode.isOwnNode && elementremNode.isGele,
                 enabled: elementremNode.isOwnNode,
                 type: 'checkbox',
