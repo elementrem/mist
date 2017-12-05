@@ -30,7 +30,7 @@ var options = minimist(process.argv.slice(2), {
     string: ['platform','walletSource'],
     default: {
         platform: 'all',
-        walletSource: 'master'
+        walletSource: 'devlab'
     }
 });
 
