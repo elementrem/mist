@@ -1,29 +1,31 @@
-"use strict";
-
 const _ = global._;
-const log = require('./utils/logger').create('ElementremNode');
-const electron = require('electron');
-const app = electron.app;
-const ipc = electron.ipcMain;
-const spawn = require('child_process').spawn;
-const Windows = require('./windows.js');
-const logRotate = require('log-rotate');
-const dialog = electron.dialog;
 const fs = require('fs');
 const Q = require('bluebird');
-const getNodePath = require('./getNodePath.js');
-const EventEmitter = require('events').EventEmitter;
-const Sockets = require('./sockets');
+const spawn = require('child_process').spawn;
+const { dialog } = require('electron');
+const Windows = require('./windows.js');
 const Settings = require('./settings');
+const log = require('./utils/logger').create('ElementremNode');
+const logRotate = require('log-rotate');
+const EventEmitter = require('events').EventEmitter;
+const Sockets = require('./socketManager');
+const ClientBinaryManager = require('./clientBinaryManager');
 
 const DEFAULT_NODE_TYPE = 'gele';
 const DEFAULT_NETWORK = 'main';
-
+const DEFAULT_SYNCMODE = 'fast';
 
 const UNABLE_TO_BIND_PORT_ERROR = 'unableToBindPort';
-const UNABLE_TO_SPAWN_ERROR = 'unableToSpan';
-const PASSWORD_WRONG_ERROR = 'badPassword';
 const NODE_START_WAIT_MS = 3000;
+
+const STATES = {
+    STARTING: 0, /* Node about to be started */
+    STARTED: 1, /* Node started */
+    CONNECTED: 2, /* IPC connected - all ready */
+    STOPPING: 3, /* Node about to be stopped */
+    STOPPED: 4, /* Node stopped */
+    ERROR: -1, /* Unexpected error */
+};
 
 
 /**
@@ -46,107 +48,124 @@ class ElementremNode extends EventEmitter {
         this.on('data', _.bind(this._logNodeData, this));
     }
 
-    get isOwnNode () {
+    get isOwnNode() {
         return !!this._node;
     }
 
-    get isExternalNode () {
+    get isExternalNode() {
         return !this._node;
     }
 
-    get isIpcConnected () {
+    get isIpcConnected() {
         return this._socket.isConnected;
     }
 
-    get type () {
+    get type() {
         return this.isOwnNode ? this._type : null;
     }
 
-    get network () {
+    get network() {
         return this.isOwnNode ? this._network : null;
     }
 
-    get isEle () {
+    get syncMode() {
+        return this._syncMode;
+    }
+
+    get isEle() {
         return this._type === 'ele';
     }
 
-    get isGele () {
+    get isGele() {
         return this._type === 'gele';
     }
 
-    get isMainNetwork () {
-        return 'main' === this.network;
+    get isMainNetwork() {
+        return this.network === 'main';
     }
 
-    get isTestNetwork () {
-        return 'test' === this.network;
+    get isTestNetwork() {
+        return this.network === 'test';
     }
 
-    get state () {
+    get isRinkebyNetwork() {
+        return this.network === 'rinkeby';
+    }
+
+    get isDevNetwork() {
+        return this.network === 'dev';
+    }
+
+    get isLightMode() {
+        return this._syncMode === 'light';
+    }
+
+    get state() {
         return this._state;
     }
 
-    get stateAsText () {
+    get stateAsText() {
         switch (this._state) {
-            case STATES.STARTING:
-                return 'starting';
-            case STATES.STARTED:
-                return 'started';
-            case STATES.CONNECTED:
-                return 'connected';
-            case STATES.STOPPING:
-                return 'stopping';
-            case STATES.STOPPED:
-                return 'stopped';
-            case STATES.ERROR:
-                return 'error';
+        case STATES.STARTING:
+            return 'starting';
+        case STATES.STARTED:
+            return 'started';
+        case STATES.CONNECTED:
+            return 'connected';
+        case STATES.STOPPING:
+            return 'stopping';
+        case STATES.STOPPED:
+            return 'stopped';
+        case STATES.ERROR:
+            return 'error';
+        default:
+            return false;
         }
     }
 
-    set state (newState) {
+    set state(newState) {
         this._state = newState;
 
         this.emit('state', this.state, this.stateAsText);
     }
 
-    get lastError () {
+    get lastError() {
         return this._lastErr;
     }
 
-    set lastError (err) {
-        return this._lastErr = err;
+    set lastError(err) {
+        this._lastErr = err;
     }
 
     /**
      * This method should always be called first to initialise the connection.
      * @return {Promise}
      */
-    init () {
+    init() {
         return this._socket.connect(Settings.rpcConnectConfig)
-            .then(()=> {
+            .then(() => {
                 this.state = STATES.CONNECTED;
 
                 this.emit('runningNodeFound');
             })
-            .catch((err) => {
+            .catch(() => {
                 log.warn('Failed to connect to node. Maybe it\'s not running so let\'s start our own...');
 
                 log.info(`Node type: ${this.defaultNodeType}`);
                 log.info(`Network: ${this.defaultNetwork}`);
+                log.info(`SyncMode: ${this.defaultSyncMode}`);
 
                 // if not, start node yourself
-                return this._start(this.defaultNodeType, this.defaultNetwork)
+                return this._start(this.defaultNodeType, this.defaultNetwork, this.defaultSyncMode)
                     .catch((err) => {
                         log.error('Failed to start node', err);
-
                         throw err;
                     });
             });
     }
 
 
-
-    restart (newType, newNetwork) {
+    restart(newType, newNetwork, syncMode) {
         return Q.try(() => {
             if (!this.isOwnNode) {
                 throw new Error('Cannot restart node since it was started externally');
@@ -155,33 +174,29 @@ class ElementremNode extends EventEmitter {
             log.info('Restart node', newType, newNetwork);
 
             return this.stop()
-                .then(() => {
-                    Windows.loading.show();
-                })
-                .then(() => {
-                    return this._start(newType || this.type, newNetwork || this.network);
-                })
-                .then(() => {
-                    Windows.loading.hide();
-                })
+                .then(() => Windows.loading.show())
+                .then(() => this._start(
+                      newType || this.type,
+                      newNetwork || this.network,
+                      syncMode || this.syncMode
+                    ))
+                .then(() => Windows.loading.hide())
                 .catch((err) => {
                     log.error('Error restarting node', err);
-
                     throw err;
                 });
         });
     }
 
 
-
     /**
      * Stop node.
-     * 
+     *
      * @return {Promise}
      */
-    stop () {
+    stop() {
         if (!this._stopPromise) {
-            return new Q((resolve, reject) => {
+            return new Q((resolve) => {
                 if (!this._node) {
                     return resolve();
                 }
@@ -195,15 +210,15 @@ class ElementremNode extends EventEmitter {
                 this._node.stdin.removeAllListeners('error');
                 this._node.removeAllListeners('error');
                 this._node.removeAllListeners('exit');
-                
+
                 this._node.kill('SIGINT');
 
                 // after some time just kill it if not already done so
-                let killTimeout = setTimeout(() => {
+                const killTimeout = setTimeout(() => {
                     if (this._node) {
                         this._node.kill('SIGKILL');
                     }
-                }, 8000 /* 8 seconds */)
+                }, 8000 /* 8 seconds */);
 
                 this._node.once('close', () => {
                     clearTimeout(killTimeout);
@@ -211,39 +226,33 @@ class ElementremNode extends EventEmitter {
                     this._node = null;
 
                     resolve();
-                }); 
-            })
-                .then(() => {
-                    this.state = STATES.STOPPED;
-                    this._stopPromise = null;
                 });
-        } else {
-            log.debug('Disconnection already in progress, returning Promise.');
+            })
+            .then(() => {
+                this.state = STATES.STOPPED;
+                this._stopPromise = null;
+            });
         }
-
+        log.debug('Disconnection already in progress, returning Promise.');
         return this._stopPromise;
     }
 
-
-    getLog () {
+    getLog() {
         return Settings.loadUserData('node.log');
     }
 
-
-
-    /** 
+    /**
      * Send Web3 command to socket.
      * @param  {String} method Method name
      * @param  {Array} [params] Method arguments
      * @return {Promise} resolves to result or error.
      */
-    send (method, params) {
+    send(method, params) {
         return this._socket.send({
-            method: method, 
-            params: params
+            method,
+            params,
         });
     }
-
 
 
     /**
@@ -252,10 +261,10 @@ class ElementremNode extends EventEmitter {
      * @param  {String} network  network id
      * @return {Promise}
      */
-    _start (nodeType, network) {
-        log.info(`Start node: ${nodeType} ${network}`);
+    _start(nodeType, network, syncMode) {
+        log.info(`Start node: ${nodeType} ${network} ${syncMode}`);
 
-        const isTestNet = ('test' === network);
+        const isTestNet = (network === 'test');
 
         if (isTestNet) {
             log.debug('Node will connect to the test network');
@@ -263,7 +272,7 @@ class ElementremNode extends EventEmitter {
 
         return this.stop()
             .then(() => {
-                return this.__startNode(nodeType, network)
+                return this.__startNode(nodeType, network, syncMode)
                     .catch((err) => {
                         log.error('Failed to start node', err);
 
@@ -273,25 +282,25 @@ class ElementremNode extends EventEmitter {
                     });
             })
             .then((proc) => {
-                log.info(`Started node successfully: ${nodeType} ${network}`);
+                log.info(`Started node successfully: ${nodeType} ${network} ${syncMode}`);
 
                 this._node = proc;
                 this.state = STATES.STARTED;
 
                 Settings.saveUserData('node', this._type);
                 Settings.saveUserData('network', this._network);
-
+                Settings.saveUserData('syncmode', this._syncMode);
 
                 return this._socket.connect(Settings.rpcConnectConfig, {
-                        timeout: 30000 /* 30s */
-                    })
+                    timeout: 30000, /* 30s */
+                })
                     .then(() => {
                         this.state = STATES.CONNECTED;
                     })
                     .catch((err) => {
                         log.error('Failed to connect to node', err);
 
-                        if (0 <= err.toString().indexOf('timeout')) {
+                        if (err.toString().indexOf('timeout') >= 0) {
                             this.emit('nodeConnectionTimeout');
                         }
 
@@ -303,11 +312,11 @@ class ElementremNode extends EventEmitter {
             .catch((err) => {
                 // set before updating state so that state change event observers
                 // can pick up on this
-                this.lastError = err.tag; 
+                this.lastError = err.tag;
                 this.state = STATES.ERROR;
 
                 // if unable to start ele node then write gele to defaults
-                if ('ele' === nodeType) {
+                if (nodeType === 'ele') {
                     Settings.saveUserData('node', 'gele');
                 }
 
@@ -319,18 +328,26 @@ class ElementremNode extends EventEmitter {
     /**
      * @return {Promise}
      */
-    __startNode (nodeType, network) {
+    __startNode(nodeType, network, syncMode) {
         this.state = STATES.STARTING;
 
         this._network = network;
         this._type = nodeType;
+        this._syncMode = syncMode;
 
-        const binPath = getNodePath(nodeType);
+        const client = ClientBinaryManager.getClient(nodeType);
+        let binPath;
 
-        log.debug(`Start node using ${binPath}`);
+        if (client) {
+            binPath = client.binPath;
+        } else {
+            throw new Error(`Node "${nodeType}" binPath is not available.`);
+        }
+
+        log.info(`Start node using ${binPath}`);
 
         return new Q((resolve, reject) => {
-            this.__startProcess(nodeType, network, binPath)
+            this.__startProcess(nodeType, network, binPath, syncMode)
                 .then(resolve, reject);
         });
     }
@@ -339,12 +356,17 @@ class ElementremNode extends EventEmitter {
     /**
      * @return {Promise}
      */
-    __startProcess (nodeType, network, binPath) {
+    __startProcess(nodeType, network, binPath, _syncMode) {
+        let syncMode = _syncMode;
+        if (nodeType === 'gele' && !syncMode) {
+            syncMode = 'fast';
+        }
+
         return new Q((resolve, reject) => {
             log.trace('Rotate log file');
 
             // rotate the log file
-            logRotate(Settings.constructUserDataPath('node.log'), {count: 5}, (err) => {
+            logRotate(Settings.constructUserDataPath('node.log'), { count: 5 }, (err) => {
                 if (err) {
                     log.error('Log rotation problems', err);
 
@@ -353,20 +375,48 @@ class ElementremNode extends EventEmitter {
 
                 let args;
 
-                // START TESTNET
-                if ('test' == network) {
-                    args = (nodeType === 'gele') 
-                        ? ['--testnet', '--fast', '--ipcpath', Settings.rpcIpcPath] 
-                        : ['--morden', '--unsafe-transactions'];
-                } 
-                // START MAINNET
-                else {
-                    args = (nodeType === 'gele') 
-                        ? ['--fast', '--cache', '512'] 
+                switch (network) {
+
+                // Starts Ropsten network
+                case 'test':
+                    args = [
+                        '--testnet',
+                        '--syncmode', syncMode,
+                        '--cache', ((process.arch === 'x64') ? '1024' : '512'),
+                        '--ipcpath', Settings.rpcIpcPath
+                    ];
+                    break;
+
+                // Starts Rinkeby network
+                case 'rinkeby':
+                    args = [
+                        '--rinkeby',
+                        '--syncmode', syncMode,
+                        '--cache', ((process.arch === 'x64') ? '1024' : '512'),
+                        '--ipcpath', Settings.rpcIpcPath
+                    ];
+                    break;
+
+                // Starts local network
+                case 'dev':
+                    args = [
+                        '--dev',
+                        '--minerthreads', '1',
+                        '--ipcpath', Settings.rpcIpcPath
+                    ];
+                    break;
+
+                // Starts Main net
+                default:
+                    args = (nodeType === 'gele')
+                        ? [
+                            '', syncMode,
+                            '--cache', ((process.arch === 'x64') ? '1024' : '512')
+                        ]
                         : ['--unsafe-transactions'];
                 }
 
-                let nodeOptions = Settings.nodeOptions;
+                const nodeOptions = Settings.nodeOptions;
 
                 if (nodeOptions && nodeOptions.length) {
                     log.debug('Custom node options', nodeOptions);
@@ -379,16 +429,16 @@ class ElementremNode extends EventEmitter {
                 const proc = spawn(binPath, args);
 
                 // node has a problem starting
-                proc.once('error', (err) => {
+                proc.once('error', (error) => {
                     if (STATES.STARTING === this.state) {
                         this.state = STATES.ERROR;
-                        
+
                         log.info('Node startup error');
 
                         // TODO: detect this properly
                         // this.emit('nodeBinaryNotFound');
 
-                        reject(err);
+                        reject(error);
                     }
                 });
 
@@ -405,19 +455,19 @@ class ElementremNode extends EventEmitter {
 
                     // check for startup errors
                     if (STATES.STARTING === this.state) {
-                        let dataStr = data.toString().toLowerCase();
+                        const dataStr = data.toString().toLowerCase();
 
-                        if ('gele' === nodeType) {
-                            if (0 <= dataStr.indexOf('fatal: error')) {
-                                let err = new Error(`Gele error: ${dataStr}`);
+                        if (nodeType === 'gele') {
+                            if (dataStr.indexOf('fatal: error') >= 0) {
+                                const error = new Error(`Gele error: ${dataStr}`);
 
-                                if (0 <= dataStr.indexOf('bind')) {
-                                    err.tag = UNABLE_TO_BIND_PORT_ERROR;
+                                if (dataStr.indexOf('bind') >= 0) {
+                                    error.tag = UNABLE_TO_BIND_PORT_ERROR;
                                 }
 
-                                log.debug(err.message);
+                                log.debug(error);
 
-                                return reject(err);
+                                return reject(error);
                             }
                         }
                     }
@@ -436,18 +486,18 @@ class ElementremNode extends EventEmitter {
                 // when data is first received
                 this.once('data', () => {
                     /*
-                        We wait a short while before marking startup as successful 
-                        because we may want to parse the initial node output for 
+                        We wait a short while before marking startup as successful
+                        because we may want to parse the initial node output for
                         errors, etc (see gele port-binding error above)
                     */
                     setTimeout(() => {
                         if (STATES.STARTING === this.state) {
                             log.info(`${NODE_START_WAIT_MS}ms elapsed, assuming node started up successfully`);
 
-                            resolve(proc);                        
+                            resolve(proc);
                         }
                     }, NODE_START_WAIT_MS);
-                })
+                });
             });
         });
     }
@@ -457,67 +507,52 @@ class ElementremNode extends EventEmitter {
         let nodelog = this.getLog();
 
         if (nodelog) {
-            nodelog = '...'+ nodelog.slice(-1000);
+            nodelog = `...${nodelog.slice(-1000)}`;
         } else {
             nodelog = global.i18n.t('mist.errors.nodeStartup');
         }
 
         // add node type
-        nodelog = 'Node type: '+ nodeType + "\n" +
-            'Network: '+ network + "\n" +
-            'Platform: '+ process.platform +' (Architecure '+ process.arch +')'+"\n\n" +
-            nodelog;
+        nodelog = `Node type: ${nodeType}\n` +
+            `Network: ${network}\n` +
+            `Platform: ${process.platform} (Architecture ${process.arch})\n\n${
+            nodelog}`;
 
         dialog.showMessageBox({
-            type: "error",
+            type: 'error',
             buttons: ['OK'],
             message: global.i18n.t('mist.errors.nodeConnect'),
-            detail: nodelog
-        }, function(){});
+            detail: nodelog,
+        }, () => {});
     }
 
 
-    _logNodeData (data) {
-        data = data.toString().replace(/[\r\n]+/,'');
+    _logNodeData(data) {
+        const cleanData = data.toString().replace(/[\r\n]+/, '');
+        const nodeType = (this.type || 'node').toUpperCase();
 
-        let nodeType = (this.type || 'node').toUpperCase();
+        log.trace(`${nodeType}: ${cleanData}`);
 
-        log.trace(`${nodeType}: ${data}`);
-
-        if (!/^\-*$/.test(data) && !_.isEmpty(data)) {
-            this.emit('nodeLog', data);
+        if (!/^-*$/.test(cleanData) && !_.isEmpty(cleanData)) {
+            this.emit('nodeLog', cleanData);
         }
     }
 
 
-
-    _loadDefaults () {
+    _loadDefaults() {
         log.trace('Load defaults');
 
         this.defaultNodeType = Settings.nodeType || Settings.loadUserData('node') || DEFAULT_NODE_TYPE;
         this.defaultNetwork = Settings.network || Settings.loadUserData('network') || DEFAULT_NETWORK;
+        this.defaultSyncMode = Settings.syncmode || Settings.loadUserData('syncmode') || DEFAULT_SYNCMODE;
+
+        log.info(Settings.syncmode, Settings.loadUserData('syncmode'), DEFAULT_SYNCMODE);
+        log.info(`Defaults loaded: ${this.defaultNodeType} ${this.defaultNetwork} ${this.defaultSyncMode}`);
     }
-
-
 }
-
-
-const STATES = {
-    STARTING: 0, /* Node about to be started */
-    STARTED: 1, /* Node started */
-    CONNECTED: 2, /* IPC connected - all ready */
-    STOPPING: 3, /* Node about to be stopped */
-    STOPPED: 4, /* Node stopped */
-    ERROR: -1, /* Unexpected error */
-};
-
 
 
 ElementremNode.STARTING = 0;
 
 
-
-
-
 module.exports = new ElementremNode();
-

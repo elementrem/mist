@@ -1,14 +1,14 @@
+const { app } = require('electron');
 const path = require('path');
-const electron = require('electron');
 const fs = require('fs');
-const app = electron.app;
-
 const logger = require('./utils/logger');
 const packageJson = require('../package.json');
+const _ = require('./utils/underscore');
+const lodash = require('lodash');
 
 
 // try loading in config file
-let defaultConfig = {
+const defaultConfig = {
     mode: 'mist',
     production: false,
 };
@@ -16,9 +16,6 @@ try {
     _.extend(defaultConfig, require('../config.json'));
 } catch (err) {
 }
-
-
-
 
 
 const argv = require('yargs')
@@ -60,6 +57,15 @@ const argv = require('yargs')
             type: 'string',
             group: 'Mist options:',
         },
+        swarmurl: {
+            demand: false,
+            default: 'http://localhost:8500',
+            describe: 'URL serving the Swarm HTTP API. If null, Mist will open a local node.',
+            requiresArg: true,
+            nargs: 1,
+            type: 'string',
+            group: 'Mist options:',
+        },
         gelepath: {
             demand: false,
             describe: 'Path to Gele executable to use instead of default.',
@@ -90,7 +96,7 @@ const argv = require('yargs')
             requiresArg: false,
             nargs: 0,
             type: 'boolean',
-            group: 'Mist options:',            
+            group: 'Mist options:',
         },
         logfile: {
             demand: false,
@@ -98,16 +104,24 @@ const argv = require('yargs')
             requiresArg: true,
             nargs: 1,
             type: 'string',
-            group: 'Mist options:',            
+            group: 'Mist options:',
         },
         loglevel: {
             demand: false,
             default: 'info',
-            describe: 'Minimum logging threshold: trace (all logs), debug, info, warn, error.',
+            describe: 'Minimum logging threshold: info, debug, error, trace (shows all logs, including possible passwords over IPC!).',
             requiresArg: true,
             nargs: 1,
             type: 'string',
-            group: 'Mist options:',                        
+            group: 'Mist options:',
+        },
+        syncmode: {
+            demand: false,
+            requiresArg: true,
+            describe: 'Gele synchronization mode: [fast|light|full]',
+            nargs: 1,
+            type: 'string',
+            group: 'Mist options:',
         },
         version: {
             alias: 'v',
@@ -118,25 +132,32 @@ const argv = require('yargs')
             group: 'Mist options:',
             type: 'boolean',
         },
+        skiptimesynccheck: {
+            demand: false,
+            requiresArg: false,
+            nargs: 0,
+            describe: 'Disable checks for the presence of automatic time sync on your OS.',
+            group: 'Mist options:',
+            type: 'boolean',
+        },
         '': {
             describe: 'To pass options to the underlying node (e.g. Gele) use the --node- prefix, e.g. --node-datadir',
             group: 'Node options:',
-        }
+        },
     })
     .help('h')
     .alias('h', 'help')
     .parse(process.argv.slice(1));
 
-
-
 argv.nodeOptions = [];
 
-for (let optIdx in argv) {
-    if (0 === optIdx.indexOf('node-')) {
-        argv.nodeOptions.push('--' + optIdx.substr(5));
-        argv.nodeOptions.push(argv[optIdx]);
+for (const optIdx in argv) {
+    if (optIdx.indexOf('node-') === 0) {
+        argv.nodeOptions.push(`--${optIdx.substr(5)}`);
 
-        break;
+        if (argv[optIdx] !== true) {
+            argv.nodeOptions.push(argv[optIdx]);
+        }
     }
 }
 
@@ -145,163 +166,235 @@ if (argv.ipcpath) {
     argv.nodeOptions.push('--ipcpath', argv.ipcpath);
 }
 
-
-
-var log = null;
-
+if (argv.nodeOptions && argv.nodeOptions.syncmode) {
+    argv.push('--syncmode', argv.nodeOptions.syncmode);
+}
 
 class Settings {
-  init () {
-    logger.setup(argv);
+    init() {
+        logger.setup(argv);
 
-    this._log = logger.create('Settings');    
-  }
+        this._log = logger.create('Settings');
+    }
 
-  get userDataPath() {
+    get userDataPath() {
     // Application Aupport/Mist
-    return app.getPath('userData');
-  }
+        return app.getPath('userData');
+    }
 
-  get appDataPath() {
+    get dbFilePath() {
+        const dbFileName = (this.inAutoTestMode) ? 'mist.test.lokidb' : 'mist.lokidb';
+        return path.join(this.userDataPath, dbFileName);
+    }
+
+    get appDataPath() {
     // Application Support/
-    return app.getPath('appData');
-  }
+        return app.getPath('appData');
+    }
 
-  get userHomePath() {
-    return app.getPath('home');
-  }
+    get userHomePath() {
+        return app.getPath('home');
+    }
 
-  get cli () {
-    return argv;
-  }
+    get cli() {
+        return argv;
+    }
 
-  get appVersion () {
-    return packageJson.version;
-  }
+    get appVersion() {
+        return packageJson.version;
+    }
 
-  get appName () {
-    return 'mist' === this.uiMode ? 'Mist' : 'Elementrem Wallet';
-  }
+    get appName() {
+        return this.uiMode === 'mist' ? 'Mist' : 'Elementrem Wallet';
+    }
 
-  get appLicense () {
-    return packageJson.license;
-  }
+    get appLicense() {
+        return packageJson.license;
+    }
 
-  get uiMode () {
-    return argv.mode;
-  }
+    get uiMode() {
+        return (_.isString(argv.mode)) ? argv.mode.toLowerCase() : argv.mode;
+    }
 
-  get inProductionMode () {
-    return defaultConfig.production;
-  }
+    get inProductionMode() {
+        return defaultConfig.production;
+    }
 
-  get inAutoTestMode () {
-    return !!process.env.TEST_MODE;
-  }
+    get inAutoTestMode() {
+        return !!process.env.TEST_MODE;
+    }
 
-  get gelePath () {
-    return argv.gelepath;
-  }
+    get swarmURL() {
+        return argv.swarmurl;
+    }
 
-  get elePath () {
-    return argv.elepath;
-  }
+    get gelePath() {
+        return argv.gelepath;
+    }
 
-  get rpcMode () {
-    return (argv.rpc && 0 > argv.rpc.indexOf('.ipc')) ? 'http' : 'ipc';
-  }
+    get elePath() {
+        return argv.elepath;
+    }
 
-  get rpcConnectConfig () {
-    if ('ipc' ===  this.rpcMode) {
-        return {
-            path: this.rpcIpcPath,
-        };
-    } else {
+    get rpcMode() {
+        if (argv.rpc && argv.rpc.indexOf('http') === 0)
+            return 'http';
+        if (argv.rpc && argv.rpc.indexOf('ws:') === 0) {
+            this._log.warn('Websockets are not yet supported by Mist, using default IPC connection');
+            argv.rpc = null;
+            return 'ipc';
+        } else
+            return 'ipc';
+    }
+
+    get rpcConnectConfig() {
+        if (this.rpcMode === 'ipc') {
+            return {
+                path: this.rpcIpcPath,
+            };
+        }
+
         return {
             hostPort: this.rpcHttpPath,
-        };        
+        };
     }
-  }
 
-  get rpcHttpPath () {
-    return ('http' === this.rpcMode) ? argv.rpc : null;
-  }
-
-  get rpcIpcPath () {
-    let ipcPath = ('ipc' === this.rpcMode) ? argv.rpc : null;
-
-    if (ipcPath) {
-        return ipcPath;
+    get rpcHttpPath() {
+        return (this.rpcMode === 'http') ? argv.rpc : null;
     }
-    
-    ipcPath = this.userHomePath;
 
-    if (process.platform === 'darwin') {
-        ipcPath += '/Library/Elementrem/gele.ipc';
-    } else if (process.platform === 'freebsd' ||
+    get rpcIpcPath() {
+        let ipcPath = (this.rpcMode === 'ipc') ? argv.rpc : null;
+
+        if (ipcPath) {
+            return ipcPath;
+        }
+
+        ipcPath = this.userHomePath;
+
+        if (process.platform === 'darwin') {
+            ipcPath += '/Library/Elementrem/gele.ipc';
+        } else if (process.platform === 'freebsd' ||
        process.platform === 'linux' ||
        process.platform === 'sunos') {
-        ipcPath += '/.elementrem/gele.ipc';
-    } else if (process.platform === 'win32') {
-        ipcPath = '\\\\.\\pipe\\gele.ipc';
+            ipcPath += '/.elementrem/gele.ipc';
+        } else if (process.platform === 'win32') {
+            ipcPath = '\\\\.\\pipe\\gele.ipc';
+        }
+
+        this._log.debug(`IPC path: ${ipcPath}`);
+
+        return ipcPath;
     }
-    
-    this._log.debug(`IPC path: ${ipcPath}`);
 
-    return ipcPath;
-  }
+    get nodeType() {
+        return argv.node;
+    }
 
-  get nodeType () {
-    return argv.node;
-  }
+    get network() {
+        return argv.network;
+    }
 
-  get network () {
-    return argv.network;
-  }
+    get syncmode() {
+        return argv.syncmode;
+    }
 
-  get nodeOptions () {
-    return argv.nodeOptions;
-  }
+    get nodeOptions() {
+        return argv.nodeOptions;
+    }
 
-  loadUserData (path) {
-      const fullPath = this.constructUserDataPath(path);
+    get language() {
+        return this.loadConfig('ui.i18n');
+    }
 
-      this._log.trace('Load user data', fullPath);
+    set language(langCode) {
+        this.saveConfig('ui.i18n', langCode);
+    }
+
+    get skiptimesynccheck() {
+        return argv.skiptimesynccheck;
+    }
+
+    initConfig() {
+        global.config.insert({
+            ui: {
+                i18n: i18n.getBestMatchedLangCode(app.getLocale())
+            }
+        });
+    }
+
+    saveConfig(key, value) {
+        let obj = global.config.get(1);
+
+        if (!obj) {
+            this.initConfig();
+            obj = global.config.get(1);
+        }
+
+        if (lodash.get(obj, key) !== value) {
+            lodash.set(obj, key, value);
+            global.config.update(obj);
+
+            this._log.debug(`Settings: saveConfig('${key}', '${value}')`);
+            this._log.trace(global.config.data);
+        }
+    }
+
+    loadConfig(key) {
+        const obj = global.config.get(1);
+
+        if (!obj) {
+            this.initConfig();
+            return this.loadConfig(key);
+        }
+
+        this._log.trace(`Settings: loadConfig('${key}') = '${lodash.get(obj, key)}'`);
+
+        return lodash.get(obj, key);
+    }
+
+    loadUserData(path2) {
+        const fullPath = this.constructUserDataPath(path2);
+
+        this._log.trace('Load user data', fullPath);
 
       // check if the file exists
-      try {
-          fs.accessSync(fullPath, fs.R_OK);
-      } catch (err){
-          return null;
-      }
+        try {
+            fs.accessSync(fullPath, fs.R_OK);
+        } catch (err) {
+            return null;
+        }
 
       // try to read it
-      try {
-          return fs.readFileSync(fullPath, {encoding: 'utf8'});
-      } catch (err){
-          this._log.warn(`File not readable: ${fullPath}`, err);
-      }
+        try {
+            const data = fs.readFileSync(fullPath, { encoding: 'utf8' });
+            this._log.debug(`Reading "${data}" from ${fullPath}`);
+            return data;
+        } catch (err) {
+            this._log.warn(`File not readable: ${fullPath}`, err);
+        }
 
-      return null;
-  }
-
-
-  saveUserData (path, data) {
-      if (!data) return; // return so we dont write null, or other invalid data
-
-      const fullPath = this.constructUserDataPath(path);
-
-      try {
-          fs.writeFileSync(fullPath, data, {encoding: 'utf8'});
-      } catch (err){
-          this._log.warn(`Unable to write to ${fullPath}`, err);
-      }
-  }
+        return null;
+    }
 
 
-  constructUserDataPath (filePath) {
-      return path.join(this.userDataPath, filePath);   
-  }
+    saveUserData(path2, data) {
+        if (!data) return; // return so we dont write null, or other invalid data
+
+        const fullPath = this.constructUserDataPath(path2);
+
+        try {
+            this._log.debug(`Saving "${data}" to ${fullPath}`);
+            fs.writeFileSync(fullPath, data, { encoding: 'utf8' });
+        } catch (err) {
+            this._log.warn(`Unable to write to ${fullPath}`, err);
+        }
+    }
+
+
+    constructUserDataPath(filePath) {
+        return path.join(this.userDataPath, filePath);
+    }
 
 }
 
