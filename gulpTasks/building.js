@@ -76,9 +76,7 @@ gulp.task('switch-production', (cb) => {
 
 gulp.task('bundling-interface', (cb) => {
     const bundle = (additionalCommands) => {
-        exec(`cd interface \
-            && meteor-build-client ${path.join('..', `dist_${type}`, 'app', 'interface')} -p "" \
-            ${additionalCommands}`,
+        exec(`cd interface \&& meteor-build-client ${path.join('..', `dist_${type}`, 'app', 'interface')} -p "" \${additionalCommands}`,
         (err, stdout) => {
             console.log(stdout);
             cb(err);
