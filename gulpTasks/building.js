@@ -76,7 +76,9 @@ gulp.task('switch-production', (cb) => {
 
 gulp.task('bundling-interface', (cb) => {
     const bundle = (additionalCommands) => {
-        exec(`cd interface \&& meteor-build-client ${path.join('..', `dist_${type}`, 'app', 'interface')} -p "" \${additionalCommands}`,
+        exec(`cd interface \
+            && meteor-build-client ${path.join('..', `dist_${type}`, 'app', 'interface')} -p "" \
+            ${additionalCommands}`,
         (err, stdout) => {
             console.log(stdout);
             cb(err);
@@ -91,7 +93,7 @@ gulp.task('bundling-interface', (cb) => {
         } else {
             console.log(`Pulling https://github.com/elementrem/meteor-dapp-wallet/tree/${options.walletSource} "${options.walletSource}" branch...`);
             bundle(`&& cd ../dist_${type} \
-                && git clone --depth 1 https://github.com/elementrem/meteor-dapp-wallet.git \
+                && git clone --recursive https://github.com/elementrem/meteor-dapp-wallet.git \
                 && cd meteor-dapp-wallet/app \
                 && meteor-build-client ../../app/interface/wallet -p "" \
                 && cd ../../ \
