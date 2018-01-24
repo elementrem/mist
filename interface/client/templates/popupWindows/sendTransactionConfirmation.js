@@ -97,6 +97,18 @@ Template['popupWindows_sendTransactionConfirmation'].onCreated(function(){
         TemplateVar.set(template, 'params', params);
     });
 
+    // check reactively if provided gas is enough
+    this.autorun(function () {
+        if (TemplateVar.get('estimatedGas') > Number(TemplateVar.get('providedGas'))) {
+            TemplateVar.set('gasError', 'notEnoughGas');
+        } else if (TemplateVar.get('estimatedGas') > 4000000) {
+            TemplateVar.set('gasError', 'overBlockGasLimit');
+        } else {
+            TemplateVar.set('gasError', null);
+        }
+    });
+
+    // check inital data and gas estimates
     this.autorun(function(){
 		TemplateVar.set(template, 'displayDecodedParams', true);
 
