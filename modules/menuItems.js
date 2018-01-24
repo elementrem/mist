@@ -177,7 +177,7 @@ let menuTempl = function (webviews) {
                     });
                 },
             },
-            {
+/*            {
                 label: i18n.t('mist.applicationMenu.file.importPresale'),
                 accelerator: 'CommandOrControl+I',
                 enabled: elementremNode.isMainNetwork,
@@ -188,7 +188,7 @@ let menuTempl = function (webviews) {
                         },
                     });
                 },
-            },
+            },*/
             {
                 type: 'separator',
             },
@@ -238,7 +238,7 @@ let menuTempl = function (webviews) {
             {
                 type: 'separator',
             },
-            {
+/*            {
                 label: i18n.t('mist.applicationMenu.file.swarmUpload'),
                 accelerator: 'Shift+CommandOrControl+U',
                 click() {
@@ -266,7 +266,8 @@ let menuTempl = function (webviews) {
                         }).catch(e => console.log(e));
                     }
                 }
-            }]
+            }*/
+	]
     });
 
     // EDIT
