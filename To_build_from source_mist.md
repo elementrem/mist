@@ -25,7 +25,7 @@ Don't expect that you can build app for all platforms on one platform.
 * [Meteor Build Client](https://github.com/frozeman/meteor-build-client/) 	  
 `yarn global add meteor-build-client`    
 * [Electron](http://electron.atom.io/)        
-`yarn global add electron@1.7.9`   
+`yarn global add electron@1.7.11`   
 * [Gulp](http://gulpjs.com/)    
 `yarn global add gulp`  
 * [Brew](http://linuxbrew.sh/)      
